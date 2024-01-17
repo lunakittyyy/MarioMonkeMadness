@@ -1,6 +1,7 @@
 ﻿using MarioMonkeMadness;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace LibSM64
 {
@@ -45,9 +46,15 @@ namespace LibSM64
                 new Interop.SM64MarioState()
             };
 
-            renderer.material = material;
-            renderer.sharedMaterial.SetTexture("_MainTex", Interop.marioTexture);
-            renderer.material.shader = Shader.Find("GorillaTag/UberShader");
+            Shader uberShader = Shader.Find("GorillaTag/UberShader");
+            LocalKeyword textureKeyword = new LocalKeyword(uberShader, "_USE_TEXTURE");
+
+            renderer.sharedMaterial = new Material(uberShader)
+            {
+                shaderKeywords = new string[] { "_USE_TEXTURE" },
+                enabledKeywords = new LocalKeyword[] { textureKeyword }
+            };
+            renderer.sharedMaterial.mainTexture = Interop.marioTexture;
 
             marioRendererObject.transform.localScale = new Vector3( -1, 1, 1 ) / Interop.SCALE_FACTOR;
             marioRendererObject.transform.localPosition = Vector3.zero;

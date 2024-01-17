@@ -6,7 +6,7 @@ namespace LibSM64
 {
     internal static class Interop
     {
-        public const float SCALE_FACTOR = 190.0f;
+        public const float SCALE_FACTOR = 200f;
 
         public const int SM64_TEXTURE_WIDTH  = 64 * 11;
         public const int SM64_TEXTURE_HEIGHT = 64;
@@ -161,6 +161,7 @@ namespace LibSM64
             }
             marioTexture.SetPixels32( cols );
             marioTexture.Apply();
+            marioTexture.filterMode = FilterMode.Point;
 
             romHandle.Free();
             textureDataHandle.Free();

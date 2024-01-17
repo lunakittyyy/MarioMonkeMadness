@@ -6,6 +6,9 @@ namespace LibSM64
 {
     public class SM64Context : MonoBehaviour
     {
+        private float UpdateTick, FixedUpdateTick;
+        private const float FPS = 30;
+
         static SM64Context s_instance = null;
 
         List<SM64Mario> _marios = new List<SM64Mario>();
@@ -19,20 +22,30 @@ namespace LibSM64
 
         void Update()
         {
-            foreach( var o in _surfaceObjects )
-                o.contextUpdate();
+            UpdateTick += Time.deltaTime;
+            if (UpdateTick > FPS / Mathf.Pow(32, 2))
+            {
+                UpdateTick = 0;
+                foreach (var o in _surfaceObjects)
+                    o.contextUpdate();
 
-            foreach( var o in _marios )
-                o.contextUpdate();
+                foreach (var o in _marios)
+                    o.contextUpdate();   
+            }
         }
 
         void FixedUpdate()
         {
-            foreach( var o in _surfaceObjects )
-                o.contextFixedUpdate();
+            FixedUpdateTick += Time.fixedDeltaTime;
+            if (FixedUpdateTick > FPS / Mathf.Pow(32, 2))
+            {
+                FixedUpdateTick = 0;
+                foreach (var o in _surfaceObjects)
+                    o.contextFixedUpdate();
 
-            foreach( var o in _marios )
-                o.contextFixedUpdate();
+                foreach (var o in _marios)
+                    o.contextFixedUpdate();
+            }
         }
 
         void OnApplicationQuit()

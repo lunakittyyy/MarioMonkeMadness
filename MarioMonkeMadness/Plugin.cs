@@ -7,6 +7,7 @@ using System.Reflection;
 using UnityEngine;
 using HarmonyLib;
 using Utilla;
+using MarioMonkeMadness.Components;
 
 namespace MarioMonkeMadness
 {
@@ -31,38 +32,8 @@ namespace MarioMonkeMadness
             stream.Close();
             return bundle;
         }
-
-        ZoneData FindZoneData(ZoneManagement zoneManager, GTZone zone)
-            => (ZoneData)AccessTools.Method(typeof(ZoneManagement), "GetZoneData").Invoke(zoneManager, new object[] { zone });
-
         void OnGameInitialized(object sender, EventArgs e)
         {
-            ZoneManagement zoneManager = FindObjectOfType<ZoneManagement>();
-            ZoneData forestData = FindZoneData(zoneManager, GTZone.forest);
-
-            var materialCollection = GorillaLocomotion.Player.Instance.materialData;
-            var slipThreshold = GorillaLocomotion.Player.Instance.iceThreshold;
-
-            GameObject stump = forestData.rootGameObjects[1], forest = forestData.rootGameObjects[2];
-
-            foreach(MeshCollider collider in stump.GetComponentsInChildren<MeshCollider>())
-            {
-                SM64StaticTerrain terrain = collider.gameObject.AddComponent<SM64StaticTerrain>();
-                if (collider.TryGetComponent(out GorillaSurfaceOverride surface))
-                {
-                    terrain.surfaceType = materialCollection[surface.overrideIndex].slidePercent >= slipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
-                }
-            }
-
-            foreach (MeshCollider collider in forest.GetComponentsInChildren<MeshCollider>())
-            {
-                SM64StaticTerrain terrain = collider.gameObject.AddComponent<SM64StaticTerrain>();
-                if (collider.TryGetComponent(out GorillaSurfaceOverride surface))
-                {
-                    terrain.surfaceType = materialCollection[surface.overrideIndex].slidePercent >= slipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
-                }
-            }
-
             string path = "Environment Objects/LocalObjects_Prefab/TreeRoom/tree/TreeWood";
             GameObject.Find(path).AddComponent<SM64StaticTerrain>();
 
@@ -70,6 +41,7 @@ namespace MarioMonkeMadness
 
             SpawnPoint stumpPoint = FindObjectOfType<SpawnManager>().GetComponentsInChildren<SpawnPoint>().FirstOrDefault(point => point.startZone == GTZone.forest);
             mario = new GameObject();
+            mario.AddComponent<SM64TerrainManager>();
             mario.transform.position = stumpPoint.transform.position;
 
             var InputProv = mario.AddComponent<ExampleInputProvider>();

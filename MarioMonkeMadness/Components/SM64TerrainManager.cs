@@ -9,7 +9,6 @@ namespace MarioMonkeMadness.Components
     {
         List<MaterialData> materialCollection = GorillaLocomotion.Player.Instance.materialData;
         float slipThreshold = GorillaLocomotion.Player.Instance.iceThreshold;
-        Collider[] hitColliders;
         float colliderHeight = 100;
 
         void Start()

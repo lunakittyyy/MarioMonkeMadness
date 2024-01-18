@@ -37,6 +37,8 @@ namespace MarioMonkeMadness
             string path = "Environment Objects/LocalObjects_Prefab/TreeRoom/tree/TreeWood";
             GameObject.Find(path).AddComponent<SM64StaticTerrain>();
 
+            // Does not contain Mario's model.
+            // This only contains a base Unity material and a shader -- no Nintendo assets are stored within
             bundle = LoadAssetBundle("MarioMonkeMadness.Resources.mariomaterial");
 
             SpawnPoint stumpPoint = FindObjectOfType<SpawnManager>().GetComponentsInChildren<SpawnPoint>().FirstOrDefault(point => point.startZone == GTZone.forest);

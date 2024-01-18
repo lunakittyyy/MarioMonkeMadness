@@ -18,7 +18,7 @@ namespace MarioMonkeMadness.Components
             var rg = gameObject.AddComponent<Rigidbody>();
             rg.isKinematic = true;
             var col = gameObject.AddComponent<BoxCollider>();
-            col.transform.localScale = new Vector3 (1, colliderHeight, 1);
+            col.transform.localScale = new Vector3 (3, colliderHeight, 3);
             col.transform.position = new Vector3(col.transform.position.x, (col.transform.position.y - colliderHeight) + 2, col.transform.position.z);
             col.isTrigger = true;
             col.includeLayers = LayerMask.GetMask("Gorilla Object");
@@ -26,7 +26,7 @@ namespace MarioMonkeMadness.Components
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject.GetComponent<SM64StaticTerrain>() == null && other is MeshCollider)
+            if (other.gameObject.activeSelf && other.gameObject.GetComponent<SM64StaticTerrain>() == null && other is MeshCollider)
             {
                 SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
                 if (other.TryGetComponent(out GorillaSurfaceOverride surface))
@@ -39,29 +39,11 @@ namespace MarioMonkeMadness.Components
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.gameObject.TryGetComponent<SM64StaticTerrain>(out var terrain))
+            if (other.gameObject.activeSelf && other.gameObject.TryGetComponent<SM64StaticTerrain>(out var terrain))
             {
                 Destroy(terrain);
                 SM64Context.RefreshStaticTerrain();
             }
         }
-        /*
-        private void FixedUpdate()
-        {
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity, LayerMask.GetMask("Gorilla Object")))
-            {
-                if (hit.collider.gameObject.GetComponent<SM64StaticTerrain>() == null && hit.collider is MeshCollider)
-                {
-                    SM64StaticTerrain terrain = hit.collider.gameObject.AddComponent<SM64StaticTerrain>();
-                    if (hit.collider.TryGetComponent(out GorillaSurfaceOverride surface))
-                    {
-                        terrain.surfaceType = materialCollection[surface.overrideIndex].slidePercent >= slipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
-                    }
-                    SM64Context.RefreshStaticTerrain();
-                }
-            }
-        }
-        */
     }
 }

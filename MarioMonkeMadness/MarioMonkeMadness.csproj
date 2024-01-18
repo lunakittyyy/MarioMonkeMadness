@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\marioprefab" />
+    <None Remove="Resources\mariomaterial" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\marioprefab" />
+    <EmbeddedResource Include="Resources\mariomaterial" />
   </ItemGroup>
 
   <ItemGroup>

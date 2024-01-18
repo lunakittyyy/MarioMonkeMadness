@@ -66,10 +66,11 @@ namespace MarioMonkeMadness
             string path = "Environment Objects/LocalObjects_Prefab/TreeRoom/tree/TreeWood";
             GameObject.Find(path).AddComponent<SM64StaticTerrain>();
 
-            bundle = LoadAssetBundle("MarioMonkeMadness.Resources.marioprefab");
+            bundle = LoadAssetBundle("MarioMonkeMadness.Resources.mariomaterial");
 
             SpawnPoint stumpPoint = FindObjectOfType<SpawnManager>().GetComponentsInChildren<SpawnPoint>().FirstOrDefault(point => point.startZone == GTZone.forest);
-            mario = Instantiate(bundle.LoadAsset<GameObject>("Mario"), stumpPoint.transform.position, Quaternion.identity);
+            mario = new GameObject();
+            mario.transform.position = stumpPoint.transform.position;
 
             var InputProv = mario.AddComponent<ExampleInputProvider>();
             InputProv.cameraObject = GorillaTagger.Instance.mainCamera;

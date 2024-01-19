@@ -13,6 +13,6 @@ namespace LibSM64
 
         public abstract Vector3 GetCameraLookDirection();
         public abstract Vector2 GetJoystickAxes();
-        public abstract bool GetButtonHeld( Button button );
+        public abstract bool GetButtonHeld(Button button);
     }
 }

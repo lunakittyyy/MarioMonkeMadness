@@ -74,7 +74,10 @@ namespace MarioMonkeMadness
             // Define the spawn point which represents the location of the Stump
             SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
             StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
+        }
 
+        public void Join()
+        {
             // Define the location when the pipe is spawned
             Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(13.1149f);
 
@@ -93,6 +96,13 @@ namespace MarioMonkeMadness
                 AudioSource.PlayClipAtPoint(AssetUtils.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.2f);
                 RemoveMario();
             };
+        }
+
+        public void Leave()
+        {
+            // Dispose of the pipe when we leave the modded room
+            Pipe.Dispose();
+            Pipe = null;
         }
     }
 }

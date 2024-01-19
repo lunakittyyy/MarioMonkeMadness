@@ -163,7 +163,10 @@ namespace LibSM64
                 }
             marioTexture.SetPixels32(cols);
             marioTexture.Apply();
+
+            // Modify the Mario texture to better fit the model
             marioTexture.filterMode = FilterMode.Point;
+            marioTexture.wrapMode = TextureWrapMode.Clamp;
 
             romHandle.Free();
             textureDataHandle.Free();

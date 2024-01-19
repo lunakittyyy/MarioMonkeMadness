@@ -1,5 +1,6 @@
 ﻿using GorillaExtensions;
 using LibSM64;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static GorillaLocomotion.Player;
@@ -11,22 +12,22 @@ namespace MarioMonkeMadness.Components
         private readonly List<MaterialData> MaterialCollection = Instance.materialData;
         private readonly float SlipThreshold = Instance.iceThreshold;
 
-        public void Start()
+        public IEnumerator Start()
         {
-            gameObject.layer = (int)UnityLayer.Prop;
-
-            Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
-            rigidbody.isKinematic = true;
+            yield return new WaitForSeconds(0.25f - Time.deltaTime);
 
             Transform transform = gameObject.transform; // prevent internal call implementation
 
-            BoxCollider collider = gameObject.AddComponent<BoxCollider>();
-            transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 1f / 3f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 1f / 3f));
-            transform.position = transform.position.WithY(transform.position.y - Constants.TriggerLength + 1);
-            collider.isTrigger = true;
-            collider.includeLayers = LayerMask.GetMask("Gorilla Object");
+            gameObject.layer = (int)UnityLayer.Prop;
 
-            rigidbody.MovePosition(transform.position);
+            Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
+            rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
+            rigidbody.isKinematic = true;
+
+            BoxCollider collider = gameObject.AddComponent<BoxCollider>();
+            transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
+            collider.isTrigger = true;
+            collider.includeLayers = LayerMask.GetMask("Gorilla Object", "Default", "NoMirror", "Ignore Raycast");
         }
 
         public void OnTriggerEnter(Collider other)

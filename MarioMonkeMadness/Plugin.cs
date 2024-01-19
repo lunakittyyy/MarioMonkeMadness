@@ -13,7 +13,7 @@ using Utilla;
 
 namespace MarioMonkeMadness
 {
-    [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
+    [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version), ModdedGamemode]
     public class Plugin : BaseUnityPlugin
     {
         public MarioSpawnPipe Pipe;
@@ -58,7 +58,7 @@ namespace MarioMonkeMadness
             Mario.GetComponent<SM64Mario>().enabled = false;
 
             // Delete the Mario object and fix his reference
-            Destroy(Mario);
+            //Destroy(Mario);
             Mario = null;
         }
 
@@ -74,7 +74,11 @@ namespace MarioMonkeMadness
             // Define the spawn point which represents the location of the Stump
             SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
             StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
+        }
 
+        [ModdedGamemodeJoin]
+        public void Join()
+        {
             // Define the location when the pipe is spawned
             Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(13.1149f);
 
@@ -93,6 +97,14 @@ namespace MarioMonkeMadness
                 AudioSource.PlayClipAtPoint(AssetUtils.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.2f);
                 RemoveMario();
             };
+        }
+
+        [ModdedGamemodeLeave]
+        public void Leave()
+        {
+            // Dispose of the pipe when we leave the modded room
+            Pipe.Dispose();
+            Pipe = null;
         }
     }
 }

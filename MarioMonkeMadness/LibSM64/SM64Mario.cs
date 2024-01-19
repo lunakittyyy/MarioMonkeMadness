@@ -47,9 +47,8 @@ namespace LibSM64
 
             vertexMaterial = new Material(AssetUtils.GetAsset<Shader>("VertexColourShader"));
             surfaceMaterial = new Material(AssetUtils.GetAsset<Shader>("MarioSurfaceShader"));
-            surfaceMaterial.SetTexture("_BaseMap", Interop.marioTexture);
-            //renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
-            renderer.material = vertexMaterial; // TODO: fix the surface shader
+            surfaceMaterial.SetTexture("_MainTex", Interop.marioTexture);
+            renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
 
             marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / Interop.SCALE_FACTOR;
             marioRendererObject.transform.localPosition = Vector3.zero;
@@ -101,7 +100,7 @@ namespace LibSM64
             inputs.buttonZ = inputProvider.GetButtonHeld(SM64InputProvider.Button.Stomp) ? (byte)1 : (byte)0;
 
             states[buffIndex] = Interop.MarioTick(marioId, inputs, positionBuffers[buffIndex], normalBuffers[buffIndex], colorBuffer, uvBuffer);
-            
+
             for (int i = 0; i < colorBuffer.Length; ++i)
                 colorBufferColors[i] = new Color(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
 

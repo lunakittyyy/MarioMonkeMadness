@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using System.Text;
-using MarioMonkeMadness.Utilities;
+﻿using MarioMonkeMadness.Utilities;
 using System;
-using UnityEngine.UI;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace MarioMonkeMadness.Behaviours
 {
-    public class MarioSpawnPipe
+    public class MarioSpawnPipe : IDisposable
     {
         public event Action On, Off;
 
@@ -17,7 +15,7 @@ namespace MarioMonkeMadness.Behaviours
 
         public void Create(Vector3 position)
         {
-            Pipe = GameObject.Instantiate(AssetUtils.GetAsset<GameObject>("MarioSpawner"));
+            Pipe = UnityEngine.Object.Instantiate(AssetUtils.GetAsset<GameObject>("MarioSpawner"));
             Pipe.transform.position = position;
             Pipe.transform.localScale = Vector3.one * 1.4f;
 
@@ -50,6 +48,12 @@ namespace MarioMonkeMadness.Behaviours
 
                 Off?.Invoke();
             }
+        }
+
+        public void Dispose()
+        {
+            UnityEngine.Object.Destroy(Pipe);
+            GC.SuppressFinalize(this);
         }
     }
 }

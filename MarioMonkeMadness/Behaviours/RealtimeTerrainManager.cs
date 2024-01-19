@@ -24,7 +24,7 @@ namespace MarioMonkeMadness.Components
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 1f / 3f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 1f / 3f));
             transform.position = transform.position.WithY(transform.position.y - Constants.TriggerLength + 1);
             collider.isTrigger = true;
-            collider.includeLayers = LayerMask.GetMask("Gorilla Object");
+            collider.includeLayers = LayerMask.GetMask("Gorilla Object", "Default", "NoMirror", "Ignore Raycast");
 
             rigidbody.MovePosition(transform.position);
         }

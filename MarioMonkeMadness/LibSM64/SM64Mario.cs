@@ -6,7 +6,7 @@ namespace LibSM64
 {
     public class SM64Mario : MonoBehaviour
     {
-        Material vertexMaterial, surfaceMaterial;
+        Material vertexMaterial;
         SM64InputProvider inputProvider;
 
         Vector3[][] positionBuffers;
@@ -46,10 +46,7 @@ namespace LibSM64
             };
 
             vertexMaterial = new Material(AssetUtils.GetAsset<Shader>("VertexColourShader"));
-            surfaceMaterial = new Material(AssetUtils.GetAsset<Shader>("MarioSurfaceShader"));
-            surfaceMaterial.SetTexture("_BaseMap", Interop.marioTexture);
-            //renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
-            renderer.material = vertexMaterial; // TODO: fix the surface shader
+            renderer.material = vertexMaterial;
 
             marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / Interop.SCALE_FACTOR;
             marioRendererObject.transform.localPosition = Vector3.zero;

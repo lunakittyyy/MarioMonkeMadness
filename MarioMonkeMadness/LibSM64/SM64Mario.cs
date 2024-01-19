@@ -1,4 +1,5 @@
-﻿using MarioMonkeMadness.Utilities;
+﻿using MarioMonkeMadness;
+using MarioMonkeMadness.Utilities;
 using System.Linq;
 using UnityEngine;
 
@@ -101,8 +102,20 @@ namespace LibSM64
 
             states[buffIndex] = Interop.MarioTick(marioId, inputs, positionBuffers[buffIndex], normalBuffers[buffIndex], colorBuffer, uvBuffer);
 
+            Color baseColour = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[0].color;
             for (int i = 0; i < colorBuffer.Length; ++i)
-                colorBufferColors[i] = new Color(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
+            {
+                Color originalColour = new(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
+                if (RefCache.Config.CustomColour.Value)
+                {
+                    Color.RGBToHSV(originalColour, out _, out float s, out float v);
+                    colorBufferColors[i] = baseColour * Mathf.LerpUnclamped(v, s, s % v);
+                }
+                else
+                {
+                    colorBufferColors[i] = originalColour;
+                }
+            }
 
             marioMesh.colors = colorBufferColors;
             marioMesh.uv = uvBuffer;

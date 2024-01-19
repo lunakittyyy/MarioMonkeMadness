@@ -4,6 +4,7 @@ using HarmonyLib;
 using LibSM64;
 using MarioMonkeMadness.Behaviours;
 using MarioMonkeMadness.Components;
+using MarioMonkeMadness.Tools;
 using MarioMonkeMadness.Utilities;
 using System;
 using System.Linq;
@@ -16,14 +17,16 @@ namespace MarioMonkeMadness
     [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version), ModdedGamemode]
     public class Plugin : BaseUnityPlugin
     {
-        public MarioSpawnPipe Pipe;
+        private MarioSpawnPipe Pipe;
 
-        public SpawnPoint StumpPoint;
-        public GameObject Mario;
+        private SpawnPoint StumpPoint;
+        private GameObject Mario;
 
         public Plugin()
         {
+            new Configuration(this);
             new Harmony(Constants.Guid).PatchAll(typeof(Plugin).Assembly);
+
             Events.GameInitialized += OnGameInitialized;
         }
 
@@ -80,7 +83,7 @@ namespace MarioMonkeMadness
         public void SpawnPipe()
         {
             // Define the location when the pipe is spawned
-            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(13.1149f);
+            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.85f);
 
             // Create our pipe which will be used to spawn and despawn Mario
             Pipe = new MarioSpawnPipe();

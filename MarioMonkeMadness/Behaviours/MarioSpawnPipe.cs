@@ -38,14 +38,14 @@ namespace MarioMonkeMadness.Behaviours
             if (Button.isOn)
             {
                 Button.myText.text = Button.onText;
-                Button.buttonRenderer.material.color = Color.red;
+                Button.buttonRenderer.material.color = new Color32(116, 116, 116, 255);
 
                 On?.Invoke();
             }
             else
             {
                 Button.myText.text = Button.offText;
-                Button.buttonRenderer.material.color = new Color32(189, 191, 171, 255);
+                Button.buttonRenderer.material.color = new Color32(62, 67, 159, 255);
 
                 Off?.Invoke();
             }

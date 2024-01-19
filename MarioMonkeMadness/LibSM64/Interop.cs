@@ -36,9 +36,9 @@ namespace LibSM64
         [StructLayout(LayoutKind.Sequential)]
         public struct SM64MarioState
         {
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
             public float[] position;
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
             public float[] velocity;
             public float faceAngle;
             public short health;
@@ -62,9 +62,9 @@ namespace LibSM64
         [StructLayout(LayoutKind.Sequential)]
         struct SM64ObjectTransform
         {
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
             float[] position;
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
             float[] eulerRotation;
 
             static public SM64ObjectTransform FromUnityWorld(Vector3 position, Quaternion rotation)

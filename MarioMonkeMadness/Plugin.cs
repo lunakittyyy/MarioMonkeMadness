@@ -13,7 +13,7 @@ using Utilla;
 
 namespace MarioMonkeMadness
 {
-    [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
+    [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version), ModdedGamemode]
     public class Plugin : BaseUnityPlugin
     {
         public MarioSpawnPipe Pipe;

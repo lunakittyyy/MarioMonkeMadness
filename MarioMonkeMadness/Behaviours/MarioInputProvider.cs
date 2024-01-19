@@ -1,11 +1,12 @@
-using UnityEngine;
-using LibSM64;
 using GorillaNetworking;
 using HarmonyLib;
-using Valve.VR;
+using LibSM64;
+using System;
+using UnityEngine;
 using UnityEngine.XR;
+using Valve.VR;
 
-public class ExampleInputProvider : SM64InputProvider
+public class MarioInputProvider : SM64InputProvider
 {
     public GameObject cameraObject = null;
 
@@ -23,14 +24,11 @@ public class ExampleInputProvider : SM64InputProvider
         return lStick;
     }
 
-    public override bool GetButtonHeld( Button button )
+    public override bool GetButtonHeld(Button button) => button switch
     {
-        switch( button )
-        {
-            case SM64InputProvider.Button.Jump:  return ControllerInputPoller.instance.rightControllerPrimaryButton;
-            case SM64InputProvider.Button.Kick:  return ControllerInputPoller.instance.rightControllerSecondaryButton;
-            case SM64InputProvider.Button.Stomp: return ControllerInputPoller.instance.leftGrab;
-        }
-        return false;
-    }
+        Button.Jump => ControllerInputPoller.instance.rightControllerPrimaryButton,
+        Button.Kick => ControllerInputPoller.instance.rightControllerSecondaryButton,
+        Button.Stomp => ControllerInputPoller.instance.leftGrab,
+        _ => throw new IndexOutOfRangeException()
+    };
 }

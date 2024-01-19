@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Linq;
+﻿using System.Linq;
+using UnityEngine;
 
 namespace LibSM64
 {
@@ -8,8 +8,8 @@ namespace LibSM64
         internal SM64TerrainType terrainType = SM64TerrainType.Grass;
         internal SM64SurfaceType surfaceType = SM64SurfaceType.Default;
 
-        public SM64TerrainType TerrainType { get { return terrainType; }}
-        public SM64SurfaceType SurfaceType { get { return surfaceType; }}
+        public SM64TerrainType TerrainType { get { return terrainType; } }
+        public SM64SurfaceType SurfaceType { get { return surfaceType; } }
 
         Vector3 _position;
         Vector3 _lastPosition;
@@ -19,14 +19,14 @@ namespace LibSM64
         Quaternion _nextRotation;
         uint _surfaceObjectId;
 
-        public Vector3 position     { get { return _position;     }}
-        public Vector3 lastPosition { get { return _lastPosition; }}
-        public Quaternion rotation     { get { return _rotation;     }}
-        public Quaternion lastRotation { get { return _lastRotation; }}
+        public Vector3 position { get { return _position; } }
+        public Vector3 lastPosition { get { return _lastPosition; } }
+        public Quaternion rotation { get { return _rotation; } }
+        public Quaternion lastRotation { get { return _lastRotation; } }
 
         void OnEnable()
         {
-            SM64Context.RegisterSurfaceObject( this );
+            SM64Context.RegisterSurfaceObject(this);
 
             _position = transform.position;
             _rotation = transform.rotation;
@@ -36,16 +36,16 @@ namespace LibSM64
             _nextRotation = _rotation;
 
             var mc = GetComponent<MeshCollider>();
-            var surfaces = Utils.GetSurfacesForMesh( transform.lossyScale, mc.sharedMesh, surfaceType, terrainType );
-            _surfaceObjectId = Interop.SurfaceObjectCreate( _position, _rotation, surfaces.ToArray() );
+            var surfaces = Utils.GetSurfacesForMesh(transform.lossyScale, mc.sharedMesh, surfaceType, terrainType);
+            _surfaceObjectId = Interop.SurfaceObjectCreate(_position, _rotation, surfaces.ToArray());
         }
 
         void OnDisable()
         {
-            if( Interop.isGlobalInit )
+            if (Interop.isGlobalInit)
             {
-                SM64Context.UnregisterSurfaceObject( this );
-                Interop.SurfaceObjectDelete( _surfaceObjectId );
+                SM64Context.UnregisterSurfaceObject(this);
+                Interop.SurfaceObjectDelete(_surfaceObjectId);
             }
         }
 
@@ -54,11 +54,11 @@ namespace LibSM64
             _lastPosition = _position;
             _lastRotation = _rotation;
 
-            if( _position != _nextPosition || _rotation != _nextRotation )
+            if (_position != _nextPosition || _rotation != _nextRotation)
             {
                 _position = _nextPosition;
                 _rotation = _nextRotation;
-                Interop.SurfaceObjectMove( _surfaceObjectId, _position, _rotation );
+                Interop.SurfaceObjectMove(_surfaceObjectId, _position, _rotation);
             }
         }
 
@@ -66,16 +66,16 @@ namespace LibSM64
         {
             float t = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
 
-            transform.position = Vector3.LerpUnclamped( _lastPosition, _position, t );
-            transform.rotation = Quaternion.SlerpUnclamped( _lastRotation, _rotation, t );
+            transform.position = Vector3.LerpUnclamped(_lastPosition, _position, t);
+            transform.rotation = Quaternion.SlerpUnclamped(_lastRotation, _rotation, t);
         }
 
-        public void SetPosition( Vector3 position )
+        public void SetPosition(Vector3 position)
         {
             _nextPosition = position;
         }
 
-        public void SetRotation( Quaternion rotation )
+        public void SetRotation(Quaternion rotation)
         {
             _nextRotation = rotation;
         }

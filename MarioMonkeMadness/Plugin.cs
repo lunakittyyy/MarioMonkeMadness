@@ -76,6 +76,7 @@ namespace MarioMonkeMadness
             StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
         }
 
+        [ModdedGamemodeJoin]
         public void Join()
         {
             // Define the location when the pipe is spawned
@@ -98,6 +99,7 @@ namespace MarioMonkeMadness
             };
         }
 
+        [ModdedGamemodeLeave]
         public void Leave()
         {
             // Dispose of the pipe when we leave the modded room

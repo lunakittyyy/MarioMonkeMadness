@@ -13,20 +13,18 @@ namespace MarioMonkeMadness.Components
 
         public void Start()
         {
+            Transform transform = gameObject.transform; // prevent internal call implementation
+
             gameObject.layer = (int)UnityLayer.Prop;
 
             Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
+            rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
             rigidbody.isKinematic = true;
 
-            Transform transform = gameObject.transform; // prevent internal call implementation
-
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
-            transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 1f / 3f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 1f / 3f));
-            transform.position = transform.position.WithY(transform.position.y - Constants.TriggerLength + 1);
+            transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
             collider.includeLayers = LayerMask.GetMask("Gorilla Object", "Default", "NoMirror", "Ignore Raycast");
-
-            rigidbody.MovePosition(transform.position);
         }
 
         public void OnTriggerEnter(Collider other)

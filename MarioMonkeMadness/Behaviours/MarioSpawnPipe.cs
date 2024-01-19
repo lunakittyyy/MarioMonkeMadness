@@ -16,6 +16,7 @@ namespace MarioMonkeMadness.Behaviours
         public void Create(Vector3 position)
         {
             Pipe = UnityEngine.Object.Instantiate(AssetUtils.GetAsset<GameObject>("MarioSpawner"));
+            Pipe.layer = (int)UnityLayer.Prop;
             Pipe.transform.position = position;
             Pipe.transform.localScale = Vector3.one * 1.4f;
 

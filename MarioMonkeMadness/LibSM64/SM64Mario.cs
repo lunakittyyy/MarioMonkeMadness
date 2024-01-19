@@ -47,7 +47,7 @@ namespace LibSM64
 
             vertexMaterial = new Material(AssetUtils.GetAsset<Shader>("VertexColourShader"));
             surfaceMaterial = new Material(AssetUtils.GetAsset<Shader>("MarioSurfaceShader"));
-            surfaceMaterial.SetTexture("_MainTex", Interop.marioTexture);
+            surfaceMaterial.SetTexture("_MainTex", Interop.MarioTexture);
             renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
 
             marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / Interop.SCALE_FACTOR;
@@ -75,14 +75,14 @@ namespace LibSM64
                 marioRendererObject = null;
             }
 
-            if (Interop.isGlobalInit)
+            if (Interop.IsGlobalInit)
             {
                 SM64Context.UnregisterMario(this);
                 Interop.MarioDelete(marioId);
             }
         }
 
-        public void contextFixedUpdate()
+        public void ContextFixedUpdate()
         {
             var inputs = new Interop.SM64MarioInputs();
             var look = inputProvider.GetCameraLookDirection();
@@ -110,7 +110,7 @@ namespace LibSM64
             buffIndex = 1 - buffIndex;
         }
 
-        public void contextUpdate()
+        public void ContextUpdate()
         {
             float t = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
             int j = 1 - buffIndex;

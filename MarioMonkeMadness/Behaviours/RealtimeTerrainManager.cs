@@ -18,7 +18,7 @@ namespace MarioMonkeMadness.Components
 
             Transform transform = gameObject.transform; // prevent internal call implementation
 
-            gameObject.layer = (int)UnityLayer.Prop;
+            gameObject.layer = (int)UnityLayer.GorillaBodyCollider;
 
             Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
             rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
@@ -27,7 +27,7 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
-            collider.includeLayers = LayerMask.GetMask("Gorilla Object", "Default", "NoMirror", "Ignore Raycast");
+            // collider.includeLayers = LayerMask.GetMask("Gorilla Object", "Default", "NoMirror", "Ignore Raycast");
         }
 
         public void OnTriggerEnter(Collider other)

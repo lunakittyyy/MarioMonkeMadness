@@ -42,7 +42,7 @@ namespace LibSM64
 
         void OnDisable()
         {
-            if (Interop.isGlobalInit)
+            if (Interop.IsGlobalInit)
             {
                 SM64Context.UnregisterSurfaceObject(this);
                 Interop.SurfaceObjectDelete(_surfaceObjectId);

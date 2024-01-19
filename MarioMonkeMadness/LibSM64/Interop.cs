@@ -132,17 +132,17 @@ namespace LibSM64
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void DebugPrintFuncDelegate(string str);
 
-        static public Texture2D marioTexture { get; private set; }
-        static public bool isGlobalInit { get; private set; }
+        static public Texture2D MarioTexture { get; private set; }
+        static public bool IsGlobalInit { get; private set; }
 
-        static void debugPrintCallback(string str)
+        static void DebugPrintCallback(string str)
         {
             //Debug.Log("libsm64: " + str);
         }
 
         public static void GlobalInit(byte[] rom)
         {
-            var callbackDelegate = new DebugPrintFuncDelegate(debugPrintCallback);
+            var callbackDelegate = new DebugPrintFuncDelegate(DebugPrintCallback);
             var romHandle = GCHandle.Alloc(rom, GCHandleType.Pinned);
             var textureData = new byte[4 * SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT];
             var textureDataHandle = GCHandle.Alloc(textureData, GCHandleType.Pinned);
@@ -150,7 +150,7 @@ namespace LibSM64
             sm64_global_init(romHandle.AddrOfPinnedObject(), textureDataHandle.AddrOfPinnedObject(), Marshal.GetFunctionPointerForDelegate(callbackDelegate));
 
             Color32[] cols = new Color32[SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT];
-            marioTexture = new Texture2D(SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT);
+            MarioTexture = new Texture2D(SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT);
             for (int ix = 0; ix < SM64_TEXTURE_WIDTH; ix++)
                 for (int iy = 0; iy < SM64_TEXTURE_HEIGHT; iy++)
                 {
@@ -161,24 +161,24 @@ namespace LibSM64
                         textureData[4 * (ix + SM64_TEXTURE_WIDTH * iy) + 3]
                     );
                 }
-            marioTexture.SetPixels32(cols);
-            marioTexture.Apply();
+            MarioTexture.SetPixels32(cols);
+            MarioTexture.Apply();
 
             // Modify the Mario texture to better fit the model
-            marioTexture.filterMode = FilterMode.Point;
-            marioTexture.wrapMode = TextureWrapMode.Clamp;
+            MarioTexture.filterMode = FilterMode.Point;
+            MarioTexture.wrapMode = TextureWrapMode.Clamp;
 
             romHandle.Free();
             textureDataHandle.Free();
 
-            isGlobalInit = true;
+            IsGlobalInit = true;
         }
 
         public static void GlobalTerminate()
         {
             sm64_global_terminate();
-            marioTexture = null;
-            isGlobalInit = false;
+            MarioTexture = null;
+            IsGlobalInit = false;
         }
 
         public static void StaticSurfacesLoad(SM64Surface[] surfaces)

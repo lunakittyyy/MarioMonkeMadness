@@ -30,7 +30,7 @@ namespace LibSM64
                     o.contextUpdate();
 
                 foreach (var o in _marios)
-                    o.contextUpdate();
+                    o.ContextUpdate();
             }
         }
 
@@ -44,7 +44,7 @@ namespace LibSM64
                     o.contextFixedUpdate();
 
                 foreach (var o in _marios)
-                    o.contextFixedUpdate();
+                    o.ContextFixedUpdate();
             }
         }
 
@@ -54,7 +54,7 @@ namespace LibSM64
             s_instance = null;
         }
 
-        static void ensureInstanceExists()
+        static void EnsureInstanceExists()
         {
             if (s_instance == null)
             {
@@ -71,7 +71,7 @@ namespace LibSM64
 
         static public void RegisterMario(SM64Mario mario)
         {
-            ensureInstanceExists();
+            EnsureInstanceExists();
 
             if (!s_instance._marios.Contains(mario))
                 s_instance._marios.Add(mario);
@@ -85,7 +85,7 @@ namespace LibSM64
 
         static public void RegisterSurfaceObject(SM64DynamicTerrain surfaceObject)
         {
-            ensureInstanceExists();
+            EnsureInstanceExists();
 
             if (!s_instance._surfaceObjects.Contains(surfaceObject))
                 s_instance._surfaceObjects.Add(surfaceObject);

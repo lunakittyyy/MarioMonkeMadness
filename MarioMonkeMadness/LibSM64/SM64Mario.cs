@@ -101,16 +101,9 @@ namespace LibSM64
             inputs.buttonZ = inputProvider.GetButtonHeld(SM64InputProvider.Button.Stomp) ? (byte)1 : (byte)0;
 
             states[buffIndex] = Interop.MarioTick(marioId, inputs, positionBuffers[buffIndex], normalBuffers[buffIndex], colorBuffer, uvBuffer);
-
+            
             for (int i = 0; i < colorBuffer.Length; ++i)
-            {
-                Color originalColour = new Color(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
-                Color.RGBToHSV(originalColour, out _, out float s, out float v);
-
-                Color playerColour = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[0].color;
-                colorBufferColors[i] = playerColour * Mathf.LerpUnclamped(v, s, s % v);
-            }
-
+                colorBufferColors[i] = new Color(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
 
             marioMesh.colors = colorBufferColors;
             marioMesh.uv = uvBuffer;

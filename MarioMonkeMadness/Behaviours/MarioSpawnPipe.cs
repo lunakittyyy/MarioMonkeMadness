@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using System.Text;
-using MarioMonkeMadness.Utilities;
+﻿using MarioMonkeMadness.Utilities;
 using System;
-using UnityEngine.UI;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace MarioMonkeMadness.Behaviours
 {

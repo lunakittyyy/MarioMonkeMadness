@@ -58,7 +58,7 @@ namespace MarioMonkeMadness
             Mario.GetComponent<SM64Mario>().enabled = false;
 
             // Delete the Mario object and fix his reference
-            Destroy(Mario);
+            //Destroy(Mario);
             Mario = null;
         }
 

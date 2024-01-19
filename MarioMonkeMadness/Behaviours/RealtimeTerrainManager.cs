@@ -1,5 +1,6 @@
 ﻿using GorillaExtensions;
 using LibSM64;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static GorillaLocomotion.Player;
@@ -11,8 +12,10 @@ namespace MarioMonkeMadness.Components
         private readonly List<MaterialData> MaterialCollection = Instance.materialData;
         private readonly float SlipThreshold = Instance.iceThreshold;
 
-        public void Start()
+        public IEnumerator Start()
         {
+            yield return new WaitForSeconds(0.25f - Time.deltaTime);
+
             Transform transform = gameObject.transform; // prevent internal call implementation
 
             gameObject.layer = (int)UnityLayer.Prop;

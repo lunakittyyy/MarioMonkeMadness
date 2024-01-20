@@ -5,7 +5,7 @@ namespace MarioMonkeMadness.Tools
 {
     public class Configuration
     {
-        private ConfigFile Config;
+        private readonly ConfigFile Config;
 
         public ConfigEntry<bool> CustomColour;
 

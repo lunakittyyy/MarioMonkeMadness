@@ -10,5 +10,6 @@ namespace MarioMonkeMadness
         public static bool TerrainUpdated = true;
 
         public static Configuration Config;
+        public static AssetLoader AssetLoader;
     }
 }

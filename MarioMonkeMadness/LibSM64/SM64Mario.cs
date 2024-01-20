@@ -1,5 +1,4 @@
 ﻿using MarioMonkeMadness;
-using MarioMonkeMadness.Utilities;
 using System.Linq;
 using UnityEngine;
 
@@ -24,7 +23,7 @@ namespace LibSM64
         Mesh marioMesh;
         uint marioId;
 
-        private void OnEnable()
+        internal void OnEnable()
         {
             SM64Context.RegisterMario(this);
 
@@ -46,8 +45,8 @@ namespace LibSM64
                 new()
             };
 
-            vertexMaterial = new Material(AssetUtils.GetAsset<Shader>("VertexColourShader"));
-            surfaceMaterial = new Material(AssetUtils.GetAsset<Shader>("MarioSurfaceShader"));
+            vertexMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/VertexColourShader"));
+            surfaceMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader"));
             surfaceMaterial.SetTexture("_MainTex", Interop.MarioTexture);
             renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
 
@@ -68,7 +67,7 @@ namespace LibSM64
             meshFilter.sharedMesh = marioMesh;
         }
 
-        void OnDisable()
+        internal void OnDisable()
         {
             if (marioRendererObject != null)
             {
@@ -141,15 +140,6 @@ namespace LibSM64
 
             marioMesh.RecalculateBounds();
             marioMesh.RecalculateTangents();
-        }
-
-        void OnDrawGizmos()
-        {
-            if (!Application.isPlaying)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawSphere(transform.position, 0.5f);
-            }
         }
     }
 }

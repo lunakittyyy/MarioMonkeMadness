@@ -5,7 +5,6 @@ using LibSM64;
 using MarioMonkeMadness.Behaviours;
 using MarioMonkeMadness.Components;
 using MarioMonkeMadness.Tools;
-using MarioMonkeMadness.Utilities;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -28,6 +27,43 @@ namespace MarioMonkeMadness
             new Harmony(Constants.Guid).PatchAll(typeof(Plugin).Assembly);
 
             Events.GameInitialized += OnGameInitialized;
+        }
+
+        public async void OnGameInitialized(object sender, EventArgs e)
+        {
+            // Prepare the asset loader, which will retrive assets used throughout the mod
+            await new AssetLoader().Initialize();
+
+            // Define the spawn point which represents the location of the Stump
+            SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
+            StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
+
+            SpawnPipe();
+        }
+
+        // Logic based around the usage of the MarioSpawnPipe and SM64Mario
+        #region General Logic
+
+        public void SpawnPipe()
+        {
+            // Define the location when the pipe is spawned
+            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.8822f);
+
+            // Create our pipe which will be used to spawn and despawn Mario
+            Pipe = new MarioSpawnPipe();
+            Pipe.Create(pipePosition);
+
+            // Define events for our pipe for when its toggled
+            Pipe.On += delegate ()
+            {
+                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), pipePosition, 0.4f);
+                SpawnMario(pipePosition - Vector3.up * 0.3f); // Spawn Mario just underneath the location of the pipe
+            };
+            Pipe.Off += delegate ()
+            {
+                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.2f);
+                RemoveMario();
+            };
         }
 
         public void SpawnMario(Vector3 location)
@@ -65,41 +101,6 @@ namespace MarioMonkeMadness
             Mario = null;
         }
 
-        public async void OnGameInitialized(object sender, EventArgs e)
-        {
-            // Load the resources used for the mod
-            await AssetUtils.LoadAsset<Shader>("VertexColourShader");
-            await AssetUtils.LoadAsset<Shader>("MarioSurfaceShader");
-            await AssetUtils.LoadAsset<AudioClip>("Spawn");
-            await AssetUtils.LoadAsset<AudioClip>("Despawn");
-            await AssetUtils.LoadAsset<GameObject>("MarioSpawner");
-
-            // Define the spawn point which represents the location of the Stump
-            SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
-            StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
-            SpawnPipe();
-        }
-
-        public void SpawnPipe()
-        {
-            // Define the location when the pipe is spawned
-            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.8822f);
-
-            // Create our pipe which will be used to spawn and despawn Mario
-            Pipe = new MarioSpawnPipe();
-            Pipe.Create(pipePosition);
-
-            // Define events for our pipe for when its toggled
-            Pipe.On += delegate ()
-            {
-                AudioSource.PlayClipAtPoint(AssetUtils.GetAsset<AudioClip>("Spawn"), pipePosition, 0.4f);
-                SpawnMario(pipePosition - Vector3.up * 0.3f); // Spawn Mario just underneath the location of the pipe
-            };
-            Pipe.Off += delegate ()
-            {
-                AudioSource.PlayClipAtPoint(AssetUtils.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.2f);
-                RemoveMario();
-            };
-        }
+        #endregion
     }
 }

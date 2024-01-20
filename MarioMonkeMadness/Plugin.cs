@@ -83,7 +83,7 @@ namespace MarioMonkeMadness
         public void SpawnPipe()
         {
             // Define the location when the pipe is spawned
-            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.85f);
+            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.8822f);
 
             // Create our pipe which will be used to spawn and despawn Mario
             Pipe = new MarioSpawnPipe();

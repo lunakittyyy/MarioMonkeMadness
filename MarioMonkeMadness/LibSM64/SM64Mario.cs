@@ -84,12 +84,12 @@ namespace LibSM64
 
         public void ContextFixedUpdate()
         {
-            var inputs = new Interop.SM64MarioInputs();
-            var look = inputProvider.GetCameraLookDirection();
+            Interop.SM64MarioInputs inputs = new();
+            Vector3 look = inputProvider.GetCameraLookDirection();
             look.y = 0;
             look = look.normalized;
 
-            var joystick = inputProvider.GetJoystickAxes();
+            Vector2 joystick = inputProvider.GetJoystickAxes();
 
             inputs.camLookX = -look.x;
             inputs.camLookZ = look.z;
@@ -124,7 +124,7 @@ namespace LibSM64
 
         public void ContextUpdate()
         {
-            float t = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
+            float t = RefCache.Config.Interpolation.Value ? (Time.time - Time.fixedTime) / Time.fixedDeltaTime : 1f;
             int j = 1 - buffIndex;
 
             for (int i = 0; i < lerpPositionBuffer.Length; ++i)

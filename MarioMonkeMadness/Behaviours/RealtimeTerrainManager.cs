@@ -19,7 +19,7 @@ namespace MarioMonkeMadness.Components
 
             Transform transform = gameObject.transform; // prevent internal call implementation
 
-            gameObject.layer = (int)UnityLayer.GorillaBodyCollider;
+            gameObject.layer = (int)UnityLayer.Prop;
 
             Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
             rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
@@ -28,6 +28,8 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
+            collider.includeLayers = LayerMask.GetMask(UnityLayer.GorillaObject.ToString(), UnityLayer.MirrorOnly.ToString(), UnityLayer.NoMirror.ToString());
+            collider.excludeLayers = LayerMask.GetMask(UnityLayer.GorillaTrigger.ToString(), UnityLayer.IgnoreRaycast.ToString(), UnityLayer.GorillaBoundary.ToString());
         }
 
         private SM64TerrainType TerrainType(GorillaSurfaceOverride surface)

@@ -1,6 +1,7 @@
 using GorillaNetworking;
 using HarmonyLib;
 using LibSM64;
+using MarioMonkeMadness;
 using System;
 using UnityEngine;
 using UnityEngine.XR;
@@ -18,9 +19,12 @@ public class MarioInputProvider : SM64InputProvider
     public override Vector2 GetJoystickAxes()
     {
         Vector2 lStick;
-        bool IsSteamVR = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
-        if (IsSteamVR) { lStick = SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand); }
-        else { ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(CommonUsages.primary2DAxis, out lStick); }
+
+        if (RefCache.IsSteam)
+            lStick = SteamVR_Actions.gorillaTag_LeftJoystick2DAxis.GetAxis(SteamVR_Input_Sources.LeftHand);
+        else
+            ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(CommonUsages.primary2DAxis, out lStick);
+
         return lStick;
     }
 

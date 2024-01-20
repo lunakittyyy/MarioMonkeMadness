@@ -1,11 +1,13 @@
 ﻿using BepInEx;
 using GorillaExtensions;
+using GorillaNetworking;
 using HarmonyLib;
 using LibSM64;
 using MarioMonkeMadness.Behaviours;
 using MarioMonkeMadness.Components;
 using MarioMonkeMadness.Tools;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -31,12 +33,18 @@ namespace MarioMonkeMadness
 
         public async void OnGameInitialized(object sender, EventArgs e)
         {
+            // Check our Gorilla Tag directory for any ROMs and store them in the cache
+            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.z64");
+            RefCache.RomData = files.Any() ? Tuple.Create(true, files.First()) : Tuple.Create(false, string.Empty);
+
             // Prepare the asset loader, which will retrive assets used throughout the mod
             await new AssetLoader().Initialize();
 
             // Define the spawn point which represents the location of the Stump
             SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
             StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
+
+            RefCache.IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
 
             SpawnPipe();
         }

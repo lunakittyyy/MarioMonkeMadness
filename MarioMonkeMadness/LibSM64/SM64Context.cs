@@ -1,3 +1,4 @@
+using MarioMonkeMadness;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace LibSM64
 
         void Awake()
         {
-            Interop.GlobalInit(File.ReadAllBytes(Application.dataPath + "/../baserom.us.z64"));
+            Interop.GlobalInit(File.ReadAllBytes(RefCache.RomData.Item2)); // RomData is made out of a tuple, Item1 being if a ROM file exists, and Item2 being the path of the ROM
             RefreshStaticTerrain();
         }
 

@@ -1,3 +1,4 @@
+using MarioMonkeMadness;
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -6,8 +7,6 @@ namespace LibSM64
 {
     internal static class Interop
     {
-        public const float SCALE_FACTOR = 200;
-
         public const int SM64_TEXTURE_WIDTH = 64 * 11;
         public const int SM64_TEXTURE_HEIGHT = 64;
         public const int SM64_GEO_MAX_TRIANGLES = 1024;
@@ -45,7 +44,7 @@ namespace LibSM64
 
             public Vector3 unityPosition
             {
-                get { return position != null ? new Vector3(-position[0], position[1], position[2]) / SCALE_FACTOR : Vector3.zero; }
+                get { return position != null ? new Vector3(-position[0], position[1], position[2]) / RefCache.Scale : Vector3.zero; }
             }
         };
 
@@ -84,7 +83,7 @@ namespace LibSM64
                     return fmod(a + 180.0f, 360.0f) - 180.0f;
                 }
 
-                var pos = SCALE_FACTOR * Vector3.Scale(position, new Vector3(-1, 1, 1));
+                var pos = RefCache.Scale * Vector3.Scale(position, new Vector3(-1, 1, 1));
                 var rot = Vector3.Scale(rotation.eulerAngles, new Vector3(-1, 1, 1));
 
                 rot.x = fixAngle(rot.x);
@@ -152,9 +151,10 @@ namespace LibSM64
             Color32[] cols = new Color32[SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT];
             MarioTexture = new Texture2D(SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT);
             for (int ix = 0; ix < SM64_TEXTURE_WIDTH; ix++)
+            {
+                if (ix < 64) continue;
                 for (int iy = 0; iy < SM64_TEXTURE_HEIGHT; iy++)
                 {
-                    if (ix < 64) continue;
                     cols[ix + SM64_TEXTURE_WIDTH * iy] = new Color32(
                         textureData[4 * (ix + SM64_TEXTURE_WIDTH * iy) + 0],
                         textureData[4 * (ix + SM64_TEXTURE_WIDTH * iy) + 1],
@@ -162,6 +162,8 @@ namespace LibSM64
                         textureData[4 * (ix + SM64_TEXTURE_WIDTH * iy) + 3]
                     );
                 }
+            }
+
             MarioTexture.SetPixels32(cols);
             MarioTexture.Apply();
 

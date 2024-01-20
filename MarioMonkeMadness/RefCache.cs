@@ -11,5 +11,7 @@ namespace MarioMonkeMadness
 
         public static Configuration Config;
         public static AssetLoader AssetLoader;
+
+        public static float Scale = 200;
     }
 }

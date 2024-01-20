@@ -28,7 +28,7 @@ namespace LibSM64
             SM64Context.RegisterMario(this);
 
             var initPos = transform.position;
-            marioId = Interop.MarioCreate(new Vector3(-initPos.x, initPos.y, initPos.z) * Interop.SCALE_FACTOR);
+            marioId = Interop.MarioCreate(new Vector3(-initPos.x, initPos.y, initPos.z) * RefCache.Scale);
 
             inputProvider = GetComponent<SM64InputProvider>();
             if (inputProvider == null)
@@ -50,7 +50,7 @@ namespace LibSM64
             surfaceMaterial.SetTexture("_MainTex", Interop.MarioTexture);
             renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
 
-            marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / Interop.SCALE_FACTOR;
+            marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / RefCache.Scale;
             marioRendererObject.transform.localPosition = Vector3.zero;
 
             lerpPositionBuffer = new Vector3[3 * Interop.SM64_GEO_MAX_TRIANGLES];

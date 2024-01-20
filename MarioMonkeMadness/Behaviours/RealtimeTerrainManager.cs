@@ -1,4 +1,5 @@
 ﻿using GorillaExtensions;
+using GorillaLocomotion;
 using LibSM64;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,8 +28,20 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
-            // collider.includeLayers = LayerMask.GetMask("Gorilla Object", "Default", "NoMirror", "Ignore Raycast");
         }
+
+        private SM64TerrainType TerrainType(GorillaSurfaceOverride surface)
+        {
+            return MaterialCollection[surface.overrideIndex].matName switch
+            {
+                "pitground" => SM64TerrainType.Grass,
+                "pitgroundwinter" => SM64TerrainType.Snow,
+                "BeachSand" => SM64TerrainType.Sand,
+                _ => SM64TerrainType.Grass,
+            };
+        }
+
+        private SM64SurfaceType SurfaceType(GorillaSurfaceOverride surface) => MaterialCollection[surface.overrideIndex].slidePercent >= SlipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
 
         public void OnTriggerEnter(Collider other)
         {
@@ -37,7 +50,8 @@ namespace MarioMonkeMadness.Components
                 SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
                 if (other.TryGetComponent(out GorillaSurfaceOverride surface))
                 {
-                    terrain.surfaceType = MaterialCollection[surface.overrideIndex].slidePercent >= SlipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
+                    terrain.terrainType = TerrainType(surface);
+                    terrain.surfaceType = SurfaceType(surface);
                 }
                 SM64Context.RefreshStaticTerrain();
             }
@@ -50,7 +64,8 @@ namespace MarioMonkeMadness.Components
                 SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
                 if (other.TryGetComponent(out GorillaSurfaceOverride surface))
                 {
-                    terrain.surfaceType = MaterialCollection[surface.overrideIndex].slidePercent >= SlipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
+                    terrain.terrainType = TerrainType(surface);
+                    terrain.surfaceType = SurfaceType(surface);
                 }
                 SM64Context.RefreshStaticTerrain();
             }

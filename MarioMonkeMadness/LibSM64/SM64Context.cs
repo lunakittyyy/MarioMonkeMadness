@@ -81,6 +81,12 @@ namespace LibSM64
         {
             if (s_instance != null && s_instance._marios.Contains(mario))
                 s_instance._marios.Remove(mario);
+
+            if (s_instance._marios.Count == 0 && s_instance._surfaceObjects.Count == 0)
+            {
+                Destroy(s_instance.gameObject);
+                s_instance = null;
+            }
         }
 
         static public void RegisterSurfaceObject(SM64DynamicTerrain surfaceObject)
@@ -95,6 +101,12 @@ namespace LibSM64
         {
             if (s_instance != null && s_instance._surfaceObjects.Contains(surfaceObject))
                 s_instance._surfaceObjects.Remove(surfaceObject);
+
+            if (s_instance._marios.Count == 0 && s_instance._surfaceObjects.Count == 0)
+            {
+                Destroy(s_instance.gameObject);
+                s_instance = null;
+            }
         }
     }
 }

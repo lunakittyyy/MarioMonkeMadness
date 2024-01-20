@@ -22,15 +22,15 @@ namespace LibSM64
                     force = 0,
                     type = (short)surfaceType,
                     terrain = (ushort)terrainType,
-                    v0x = (short)(Interop.SCALE_FACTOR * -vertices[tris[i]].x),
-                    v0y = (short)(Interop.SCALE_FACTOR * vertices[tris[i]].y),
-                    v0z = (short)(Interop.SCALE_FACTOR * vertices[tris[i]].z),
-                    v1x = (short)(Interop.SCALE_FACTOR * -vertices[tris[i + 2]].x),
-                    v1y = (short)(Interop.SCALE_FACTOR * vertices[tris[i + 2]].y),
-                    v1z = (short)(Interop.SCALE_FACTOR * vertices[tris[i + 2]].z),
-                    v2x = (short)(Interop.SCALE_FACTOR * -vertices[tris[i + 1]].x),
-                    v2y = (short)(Interop.SCALE_FACTOR * vertices[tris[i + 1]].y),
-                    v2z = (short)(Interop.SCALE_FACTOR * vertices[tris[i + 1]].z)
+                    v0x = (short)(RefCache.Scale * -vertices[tris[i]].x),
+                    v0y = (short)(RefCache.Scale * vertices[tris[i]].y),
+                    v0z = (short)(RefCache.Scale * vertices[tris[i]].z),
+                    v1x = (short)(RefCache.Scale * -vertices[tris[i + 2]].x),
+                    v1y = (short)(RefCache.Scale * vertices[tris[i + 2]].y),
+                    v1z = (short)(RefCache.Scale * vertices[tris[i + 2]].z),
+                    v2x = (short)(RefCache.Scale * -vertices[tris[i + 1]].x),
+                    v2y = (short)(RefCache.Scale * vertices[tris[i + 1]].y),
+                    v2z = (short)(RefCache.Scale * vertices[tris[i + 1]].z)
                 });
             }
         }

@@ -154,6 +154,7 @@ namespace LibSM64
             for (int ix = 0; ix < SM64_TEXTURE_WIDTH; ix++)
                 for (int iy = 0; iy < SM64_TEXTURE_HEIGHT; iy++)
                 {
+                    if (ix < 64) continue;
                     cols[ix + SM64_TEXTURE_WIDTH * iy] = new Color32(
                         textureData[4 * (ix + SM64_TEXTURE_WIDTH * iy) + 0],
                         textureData[4 * (ix + SM64_TEXTURE_WIDTH * iy) + 1],

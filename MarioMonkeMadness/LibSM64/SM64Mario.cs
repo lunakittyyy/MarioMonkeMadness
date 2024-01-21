@@ -87,9 +87,9 @@ namespace LibSM64
             meshFilter.sharedMesh = marioMesh;
 
             await Task.Delay(500);
-            SetAction(SM64MarioAction.ACT_STAR_DANCE_EXIT);
+            SetAction(SM64MarioAction.ACT_ELECTROCUTION);
 
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             SetAction(SM64MarioAction.ACT_IDLE);
         }
 

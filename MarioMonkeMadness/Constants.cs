@@ -31,6 +31,6 @@
         /// <summary>
         /// The length of the trigger which generates static terrain on realtime 
         /// </summary>
-        public const int TriggerLength = 100;
+        public const int TriggerLength = 150;
     }
 }

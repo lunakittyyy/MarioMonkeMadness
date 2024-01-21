@@ -1,4 +1,5 @@
 ﻿using LibSM64;
+using MarioMonkeMadness.Interaction;
 using MarioMonkeMadness.Tools;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ namespace MarioMonkeMadness
         // Tools
         public static Configuration Config;
         public static AssetLoader AssetLoader;
+
+        // Interaction
+        public static MarioEvents Events;
 
         // Gameplay
         public static float Scale = 200;

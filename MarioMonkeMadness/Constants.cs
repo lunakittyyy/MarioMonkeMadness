@@ -32,12 +32,5 @@
         /// The length of the trigger which generates static terrain on realtime 
         /// </summary>
         public const int TriggerLength = 100;
-
-        // References
-
-        /// <summary>
-        /// The path of the object used for the interior of Stump
-        /// </summary>
-        public const string BaseObjectPath = "tree/TreeWood";
     }
 }

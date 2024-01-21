@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MarioMonkeMadness.Interaction;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -12,11 +13,14 @@ namespace MarioMonkeMadness.Behaviours
         private GameObject Pipe;
         private GorillaPressableButton Button;
 
-        public void Create(Vector3 position)
+        public void Create(Vector3 position, float direction)
         {
             Pipe = UnityEngine.Object.Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("MarioSpawner"));
-            Pipe.transform.position = position;
-            Pipe.transform.localScale = Vector3.one * 1.4f;
+
+            Transform transform = Pipe.transform;
+            transform.position = position;
+            transform.localScale = Vector3.one * 1.4f;
+            transform.localEulerAngles = Vector3.up * direction;
 
             if (RefCache.RomData.Item1)
             {
@@ -34,6 +38,8 @@ namespace MarioMonkeMadness.Behaviours
             {
                 Pipe.GetComponent<Animator>().Play("Warning");
             }
+
+            MarioEvents.SetButtonState += RemoteUpdate;
         }
 
         public void Press()
@@ -53,6 +59,26 @@ namespace MarioMonkeMadness.Behaviours
                 Button.buttonRenderer.material.color = new Color32(62, 67, 159, 255);
 
                 Off?.Invoke();
+            }
+
+            RefCache.Events.Trigger_SetButtonState(this, Button.isOn);
+        }
+
+        public void RemoteUpdate(MarioSpawnPipe sender, bool state)
+        {
+            if (sender == this) return;
+
+            Button.isOn = state;
+
+            if (Button.isOn)
+            {
+                Button.myText.text = Button.onText;
+                Button.buttonRenderer.material.color = new Color32(116, 116, 116, 255);
+            }
+            else
+            {
+                Button.myText.text = Button.offText;
+                Button.buttonRenderer.material.color = new Color32(62, 67, 159, 255);
             }
         }
 

@@ -136,7 +136,9 @@ namespace LibSM64
 
         static void DebugPrintCallback(string str)
         {
-            //Debug.Log("libsm64: " + str);
+#if DEBUG
+            Debug.Log("libsm64: " + str);
+#endif
         }
 
         public static void GlobalInit(byte[] rom)

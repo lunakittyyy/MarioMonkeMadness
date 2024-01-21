@@ -5,6 +5,7 @@ using HarmonyLib;
 using LibSM64;
 using MarioMonkeMadness.Behaviours;
 using MarioMonkeMadness.Components;
+using MarioMonkeMadness.Interaction;
 using MarioMonkeMadness.Tools;
 using System;
 using System.IO;
@@ -18,13 +19,12 @@ namespace MarioMonkeMadness
     [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version), ModdedGamemode]
     public class Plugin : BaseUnityPlugin
     {
-        private MarioSpawnPipe Pipe;
-
         private SpawnPoint StumpPoint;
         private GameObject Mario;
 
         public Plugin()
         {
+            new MarioEvents();
             new Configuration(this);
             new Harmony(Constants.Guid).PatchAll(typeof(Plugin).Assembly);
 
@@ -33,6 +33,9 @@ namespace MarioMonkeMadness
 
         public async void OnGameInitialized(object sender, EventArgs e)
         {
+            // Cache whether we are playing on a Steam platform
+            RefCache.IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
+
             // Check our Gorilla Tag directory for any ROMs and store them in the cache
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.z64");
             RefCache.RomData = files.Any() ? Tuple.Create(true, files.First()) : Tuple.Create(false, string.Empty);
@@ -44,32 +47,35 @@ namespace MarioMonkeMadness
             SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
             StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
 
-            RefCache.IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
-
-            SpawnPipe();
+            // Create the pipes used to spawn Mario
+            SpawnPipe((StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.8822f), 0f, Tuple.Create(GTZone.forest, 2, "tree/TreeWood"));
+            SpawnPipe(new Vector3(23.596f, 11.32f, 5.1617f), 230f, Tuple.Create(GTZone.beach, 0, "Beach_Main_Geo/B_DocksPier_1/B_Dock_Main1"));
         }
 
         // Logic based around the usage of the MarioSpawnPipe and SM64Mario
         #region General Logic
 
-        public void SpawnPipe()
+        public void SpawnPipe(Vector3 position, float direction, Tuple<GTZone, int, string> floorObject)
         {
-            // Define the location when the pipe is spawned
-            Vector3 pipePosition = (StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.8822f);
-
             // Create our pipe which will be used to spawn and despawn Mario
-            Pipe = new MarioSpawnPipe();
-            Pipe.Create(pipePosition);
+            MarioSpawnPipe pipe = new();
+            pipe.Create(position, direction);
 
             // Define events for our pipe for when its toggled
-            Pipe.On += delegate ()
+            pipe.On += delegate ()
             {
-                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), pipePosition, 0.4f);
-                SpawnMario(pipePosition - Vector3.up * 0.3f); // Spawn Mario just underneath the location of the pipe
+                // Apply static terrain for the interior of Stump; Mario can only properly spawn when valid terrain exists
+                ZoneManagement zoneManager = FindObjectOfType<ZoneManagement>();
+                ZoneData zoneData = (ZoneData)AccessTools.Method(typeof(ZoneManagement), "GetZoneData").Invoke(zoneManager, new object[] { floorObject.Item1 });
+                GameObject zoneRoot = zoneData.rootGameObjects[floorObject.Item2];
+                Destroy(zoneRoot.transform.Find(floorObject.Item3).gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
+
+                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
+                SpawnMario(position - Vector3.up * 0.3f); // Spawn Mario just underneath the location of the pipe
             };
-            Pipe.Off += delegate ()
+            pipe.Off += delegate ()
             {
-                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.2f);
+                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.4f);
                 RemoveMario();
             };
         }
@@ -77,12 +83,6 @@ namespace MarioMonkeMadness
         public void SpawnMario(Vector3 location)
         {
             if (Mario != null) return; // We already have a Mario
-
-            // Apply static terrain for the interior of Stump; Mario can only properly spawn when valid terrain exists
-            ZoneManagement zoneManager = FindObjectOfType<ZoneManagement>();
-            GameObject[] zoneObjects = (GameObject[])zoneManager.GetType().GetField("allObjects", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(zoneManager);
-            GameObject treeRoom = zoneObjects.First(zoneObject => zoneObject.name == "TreeRoom");
-            Destroy(treeRoom.transform.Find(Constants.BaseObjectPath).gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
 
             // Create the Mario object and move him to our location, we will be storing his components here
             Mario = new GameObject(string.Format("{0} | Mario", Constants.Name));

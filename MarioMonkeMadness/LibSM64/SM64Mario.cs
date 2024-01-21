@@ -87,7 +87,7 @@ namespace LibSM64
             meshFilter.sharedMesh = marioMesh;
 
             await Task.Delay(500);
-            SetAction(SM64MarioAction.ACT_ELECTROCUTION);
+            SetAction(SM64MarioAction.ACT_SHOT_FROM_CANNON);
 
             await Task.Delay(1000);
             SetAction(SM64MarioAction.ACT_IDLE);

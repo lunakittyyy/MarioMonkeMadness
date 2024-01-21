@@ -89,7 +89,7 @@ namespace LibSM64
             await Task.Delay(500);
             SetAction(SM64MarioAction.ACT_STAR_DANCE_EXIT);
 
-            await Task.Delay(1500);
+            await Task.Delay(3000);
             SetAction(SM64MarioAction.ACT_IDLE);
         }
 

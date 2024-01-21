@@ -10,6 +10,8 @@ namespace LibSM64
     {
         private static Interop.SM64Surface[] SurfaceArray;
 
+        private static Mesh unityCubeMesh = null;
+
         static void TransformAndGetSurfaces(List<Interop.SM64Surface> outSurfaces, Mesh mesh, SM64SurfaceType surfaceType, SM64TerrainType terrainType, Func<Vector3, Vector3> transformFunc)
         {
             var tris = mesh.GetTriangles(0);
@@ -50,8 +52,32 @@ namespace LibSM64
 
                 foreach (var obj in RefCache.TerrainList)
                 {
-                    var mc = obj.GetComponent<MeshCollider>();
-                    TransformAndGetSurfaces(surfaceList, mc.sharedMesh, obj.SurfaceType, obj.TerrainType, x => mc.transform.TransformPoint(x));
+                    if (!obj.enabled) continue;
+
+                    Mesh objMesh;
+                    Vector3 meshScale = Vector3.one;
+                    if (obj.GetComponent<MeshCollider>() != null)
+                    {
+                        objMesh = obj.GetComponent<MeshCollider>().sharedMesh;
+                    }
+                    else if (obj.GetComponent<BoxCollider>() != null)
+                    {
+                        if (unityCubeMesh == null)
+                            unityCubeMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                        objMesh = unityCubeMesh;
+                        meshScale = obj.GetComponent<BoxCollider>().size;
+                    }
+                    else if (obj.GetComponent<MeshFilter>() != null)
+                    {
+                        objMesh = obj.GetComponent<MeshFilter>().sharedMesh;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    if (objMesh != null)
+                        TransformAndGetSurfaces(surfaceList, objMesh, obj.SurfaceType, obj.TerrainType, x => obj.transform.TransformPoint(Vector3.Scale(meshScale, x)));
                 }
 
                 SurfaceArray = surfaceList.ToArray();

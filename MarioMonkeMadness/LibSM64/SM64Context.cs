@@ -10,10 +10,11 @@ namespace LibSM64
         private float UpdateTick, FixedUpdateTick;
         private const float FPS = 30;
 
-        static SM64Context s_instance = null;
+        private static SM64Context s_instance = null;
+        private static int _staticSurfaceCount = 0;
 
-        List<SM64Mario> _marios = new();
-        List<SM64DynamicTerrain> _surfaceObjects = new();
+        private List<SM64Mario> _marios = new();
+        private List<SM64DynamicTerrain> _surfaceObjects = new();
 
         void Awake()
         {
@@ -31,7 +32,7 @@ namespace LibSM64
                     o.contextUpdate();
 
                 foreach (var o in _marios)
-                    o.ContextUpdate();
+                    o.contextUpdate();
             }
         }
 
@@ -45,40 +46,75 @@ namespace LibSM64
                     o.contextFixedUpdate();
 
                 foreach (var o in _marios)
-                    o.ContextFixedUpdate();
+                    o.contextFixedUpdate();
             }
         }
 
-        void OnApplicationQuit()
+        private void OnApplicationQuit()
         {
-            Interop.GlobalTerminate();
-            s_instance = null;
+            Terminate();
         }
 
-        static void EnsureInstanceExists()
+        private static void ensureInstanceExists()
         {
             if (s_instance == null)
             {
                 var contextGo = new GameObject("SM64_CONTEXT");
                 contextGo.hideFlags |= HideFlags.HideInHierarchy;
                 s_instance = contextGo.AddComponent<SM64Context>();
+                DontDestroyOnLoad(contextGo);
             }
         }
 
-        static public void RefreshStaticTerrain()
+        #region Public Methods
+
+        public static void Terminate()
         {
-            Interop.StaticSurfacesLoad(Utils.GetAllStaticSurfaces());
+            if (Interop.IsGlobalInit)
+            {
+                for (int i = 0; i < s_instance._surfaceObjects.Count; i++)
+                    if (s_instance._surfaceObjects[i] != null)
+                        DestroyImmediate(s_instance._surfaceObjects[i]);
+                Interop.GlobalTerminate();
+                s_instance = null;
+            }
         }
 
-        static public void RegisterMario(SM64Mario mario)
+        public static void SetScaleFactor(float scale)
         {
-            EnsureInstanceExists();
+            ensureInstanceExists();
+
+            float oldScale = RefCache.Config.MarioScale.Value / 100.0f;
+
+            RefCache.Config.MarioScale.Value = scale * 100.0f;
+            RefreshStaticTerrain();
+            foreach (var o in s_instance._marios)
+            {
+                o.resetScaleFactor(oldScale);
+            }
+        }
+
+        public static float GetScaleFactor()
+        {
+            return RefCache.Config.MarioScale.Value / 100.0f;
+        }
+
+        public static void RefreshStaticTerrain()
+        {
+            Interop.SM64Surface[] staticSurfaces = Utils.GetAllStaticSurfaces();
+            _staticSurfaceCount = staticSurfaces.Length;
+            Interop.StaticSurfacesLoad(staticSurfaces);
+        }
+
+        public static void RegisterMario(SM64Mario mario)
+        {
+            ensureInstanceExists();
 
             if (!s_instance._marios.Contains(mario))
                 s_instance._marios.Add(mario);
         }
 
-        static public void UnregisterMario(SM64Mario mario)
+        public static void UnregisterMario(SM64Mario mario)
         {
             if (s_instance != null && s_instance._marios.Contains(mario))
                 s_instance._marios.Remove(mario);
@@ -90,15 +126,15 @@ namespace LibSM64
             }
         }
 
-        static public void RegisterSurfaceObject(SM64DynamicTerrain surfaceObject)
+        public static void RegisterSurfaceObject(SM64DynamicTerrain surfaceObject)
         {
-            EnsureInstanceExists();
+            ensureInstanceExists();
 
             if (!s_instance._surfaceObjects.Contains(surfaceObject))
                 s_instance._surfaceObjects.Add(surfaceObject);
         }
 
-        static public void UnregisterSurfaceObject(SM64DynamicTerrain surfaceObject)
+        public static void UnregisterSurfaceObject(SM64DynamicTerrain surfaceObject)
         {
             if (s_instance != null && s_instance._surfaceObjects.Contains(surfaceObject))
                 s_instance._surfaceObjects.Remove(surfaceObject);
@@ -108,6 +144,12 @@ namespace LibSM64
                 Destroy(s_instance.gameObject);
                 s_instance = null;
             }
+        }
+        #endregion
+
+        private bool IsActiveInHierarchyAndEnabled(Behaviour o)
+        {
+            return o.gameObject && o.enabled && o.gameObject.activeInHierarchy;
         }
     }
 }

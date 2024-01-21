@@ -19,15 +19,22 @@ namespace MarioMonkeMadness.Behaviours
             Pipe.transform.position = position;
             Pipe.transform.localScale = Vector3.one * 1.4f;
 
-            UnityEvent pressEvent = new();
-            pressEvent.AddListener(new UnityAction(Press));
+            if (RefCache.RomData.Item1)
+            {
+                UnityEvent pressEvent = new();
+                pressEvent.AddListener(new UnityAction(Press));
 
-            Button = Pipe.transform.Find("Button").gameObject.AddComponent<GorillaPressableButton>();
-            Button.buttonRenderer = Button.GetComponent<MeshRenderer>();
-            Button.myText = Pipe.transform.Find("Button Text").GetComponent<Text>();
-            Button.offText = "SPAWN MARIO";
-            Button.onText = "DESPAWN MARIO"; // womp womp..
-            Button.onPressButton = pressEvent;
+                Button = Pipe.transform.Find("Button").gameObject.AddComponent<GorillaPressableButton>();
+                Button.buttonRenderer = Button.GetComponent<MeshRenderer>();
+                Button.myText = Pipe.transform.Find("Button Text").GetComponent<Text>();
+                Button.offText = "SPAWN MARIO";
+                Button.onText = "DESPAWN MARIO"; // womp womp..
+                Button.onPressButton = pressEvent;
+            }
+            else
+            {
+                Pipe.GetComponent<Animator>().Play("Warning");
+            }
         }
 
         public void Press()

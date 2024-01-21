@@ -28,7 +28,7 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
-            collider.includeLayers = LayerMask.GetMask(UnityLayer.GorillaObject.ToString(), UnityLayer.MirrorOnly.ToString(), UnityLayer.NoMirror.ToString());
+            collider.includeLayers = LayerMask.GetMask(UnityLayer.GorillaObject.ToString(), UnityLayer.MirrorOnly.ToString(), UnityLayer.NoMirror.ToString(), UnityLayer.Default.ToString());
             collider.excludeLayers = LayerMask.GetMask(UnityLayer.GorillaTrigger.ToString(), UnityLayer.IgnoreRaycast.ToString(), UnityLayer.GorillaBoundary.ToString());
         }
 

@@ -68,7 +68,7 @@ namespace LibSM64
             vertexMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/VertexColourShader"));
             surfaceMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader"));
             surfaceMaterial.SetTexture("_MainTex", Interop.MarioTexture);
-            renderer.materials = new Material[] { vertexMaterial, surfaceMaterial }; 
+            renderer.materials = new Material[] { vertexMaterial, surfaceMaterial };
 
             marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / RefCache.Scale;
             marioRendererObject.transform.localPosition = Vector3.zero;
@@ -87,10 +87,7 @@ namespace LibSM64
             meshFilter.sharedMesh = marioMesh;
 
             await Task.Delay(500);
-            SetAction(SM64MarioAction.ACT_SHOT_FROM_CANNON);
-
-            await Task.Delay(1000);
-            SetAction(SM64MarioAction.ACT_IDLE);
+            SetAction(SM64MarioAction.ACT_THROWN_BACKWARD);
         }
 
         public void OnDisable()
@@ -189,8 +186,20 @@ namespace LibSM64
                 previousNumTrianglesUsed = numTrianglesUsed;
             }
 
+            Color baseColour = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[0].color;
             for (int i = 0; i < colorBuffer.Length; ++i)
-                colorBufferColors[i] = new Color(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
+            {
+                Color originalColour = new(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
+                if (RefCache.Config.CustomColour.Value)
+                {
+                    Color.RGBToHSV(originalColour, out _, out float s, out float v);
+                    colorBufferColors[i] = baseColour * Mathf.LerpUnclamped(v, s, s % v);
+                }
+                else
+                {
+                    colorBufferColors[i] = originalColour;
+                }
+            }
 
             marioMesh.colors = colorBufferColors;
             marioMesh.uv = uvBuffer;
@@ -202,7 +211,7 @@ namespace LibSM64
         {
             if (!enabled || !gameObject.activeInHierarchy) return;
 
-            float t = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
+            float t = RefCache.Config.Interpolation.Value ? (Time.time - Time.fixedTime) / Time.fixedDeltaTime : 1f;
             int j = 1 - buffIndex;
 
             for (int i = 0; i < numTrianglesUsed * 3; ++i)

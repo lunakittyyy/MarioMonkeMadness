@@ -10,7 +10,6 @@ using MarioMonkeMadness.Tools;
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using Utilla;
 
@@ -71,8 +70,9 @@ namespace MarioMonkeMadness
                 Destroy(zoneRoot.transform.Find(floorObject.Item3).gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
 
                 AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
-                SpawnMario(position - Vector3.up * 0.3f); // Spawn Mario just underneath the location of the pipe
+                SpawnMario(position - Vector3.up * 0.3f, Vector3.up * direction); // Spawn Mario just underneath the location of the pipe
             };
+
             pipe.Off += delegate ()
             {
                 AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.4f);
@@ -80,17 +80,18 @@ namespace MarioMonkeMadness
             };
         }
 
-        public void SpawnMario(Vector3 location)
+        public void SpawnMario(Vector3 location, Vector3 direction)
         {
             if (Mario != null) return; // We already have a Mario
 
             // Create the Mario object and move him to our location, we will be storing his components here
             Mario = new GameObject(string.Format("{0} | Mario", Constants.Name));
             Mario.transform.position = location;
+            Mario.transform.eulerAngles = direction;    
 
             // Create the input provider for Mario so we can control him
             MarioInputProvider inputProvider = Mario.AddComponent<MarioInputProvider>();
-            inputProvider.cameraObject = GorillaTagger.Instance.mainCamera;
+            inputProvider.Camera = GorillaTagger.Instance.mainCamera.transform;
 
             // Create other components which Mario uses
             Mario.AddComponent<RealtimeTerrainManager>();
@@ -105,7 +106,7 @@ namespace MarioMonkeMadness
             Mario.GetComponent<SM64Mario>().enabled = false;
 
             // Delete the Mario object and fix his reference
-            //Destroy(Mario);
+            Destroy(Mario);
             Mario = null;
         }
 

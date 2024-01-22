@@ -29,6 +29,7 @@ namespace MarioMonkeMadness.Behaviours
 
                 Button = Pipe.transform.Find("Button").gameObject.AddComponent<GorillaPressableButton>();
                 Button.buttonRenderer = Button.GetComponent<MeshRenderer>();
+                Button.debounceTime = 0.5f;
                 Button.myText = Pipe.transform.Find("Button Text").GetComponent<Text>();
                 Button.offText = "SPAWN MARIO";
                 Button.onText = "DESPAWN MARIO"; // womp womp..

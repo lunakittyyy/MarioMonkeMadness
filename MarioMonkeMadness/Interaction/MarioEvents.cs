@@ -12,7 +12,7 @@ namespace MarioMonkeMadness.Interaction
             RefCache.Events = this;
         }
 
-        public virtual void Trigger_SetButtonState(MarioSpawnPipe sender, bool state)  
+        public virtual void Trigger_SetButtonState(MarioSpawnPipe sender, bool state)
             => SetButtonState?.Invoke(sender, state);
     }
 }

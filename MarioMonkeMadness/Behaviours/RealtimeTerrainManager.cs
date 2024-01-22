@@ -3,6 +3,7 @@ using GorillaLocomotion;
 using LibSM64;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static GorillaLocomotion.Player;
 
@@ -10,17 +11,22 @@ namespace MarioMonkeMadness.Components
 {
     public class RealtimeTerrainManager : MonoBehaviour
     {
+        private SM64Mario Mario;
+
+        private bool Twirling;
+
         private readonly List<MaterialData> MaterialCollection = Instance.materialData;
         private readonly float SlipThreshold = Instance.iceThreshold;
 
         public IEnumerator Start()
         {
-            yield return new WaitForSeconds(0.25f - Time.deltaTime);
+            Mario = GetComponent<SM64Mario>();
 
-            Transform transform = gameObject.transform; // prevent internal call implementation
+            yield return new WaitForSeconds(0.25f - Mathf.Pow(Time.deltaTime, 2f));
 
             gameObject.layer = (int)UnityLayer.GorillaBodyCollider;
 
+            Transform transform = gameObject.transform; // prevent internal call implementation
             Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
             rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
             rigidbody.isKinematic = true;
@@ -28,7 +34,7 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
-            collider.includeLayers = LayerMask.GetMask(UnityLayer.GorillaObject.ToString(), UnityLayer.MirrorOnly.ToString(), UnityLayer.NoMirror.ToString());
+            collider.includeLayers = LayerMask.GetMask(UnityLayer.GorillaObject.ToString(), UnityLayer.MirrorOnly.ToString(), UnityLayer.NoMirror.ToString(), "Default");
             collider.excludeLayers = LayerMask.GetMask(UnityLayer.GorillaTrigger.ToString(), UnityLayer.IgnoreRaycast.ToString(), UnityLayer.GorillaBoundary.ToString());
         }
 
@@ -70,6 +76,19 @@ namespace MarioMonkeMadness.Components
                     terrain.surfaceType = SurfaceType(surface);
                 }
                 SM64Context.RefreshStaticTerrain();
+            }
+            else if (other.GetComponent<SM64StaticTerrain>() && Physics.OverlapSphere(transform.position - Vector3.up * 0.2f, 0.12f, GetComponent<BoxCollider>().includeLayers, QueryTriggerInteraction.Ignore).Contains(other))
+            {
+                if (!Twirling && other.TryGetComponent(out GorillaSurfaceOverride surface) && surface.extraVelMultiplier > 1)
+                {
+                    Mario.SetVelocity(Vector3.up * surface.extraVelMultiplier / 5f);
+                    Mario.SetAction(SM64MarioAction.ACT_TWIRLING);
+                    Twirling = true;
+                }
+            }
+            else
+            {
+                Twirling = false;
             }
         }
 

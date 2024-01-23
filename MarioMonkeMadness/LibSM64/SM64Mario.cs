@@ -32,13 +32,13 @@ namespace LibSM64
         public Action MarioStoppedMoving;
         public GameObject marioRendererObject;
 
-        public void OnEnable()
+        public async void OnEnable()
         {
             SM64Context.RegisterMario(this);
 
             var initPos = transform.position;
             var initRot = transform.eulerAngles;
-            marioId = Interop.MarioCreate(new Vector3(-initPos.x, initPos.y, initPos.z) * RefCache.Scale, initRot);
+            marioId = Interop.MarioCreate(new Vector3(-initPos.x, initPos.y, initPos.z) * Interop.SCALE_FACTOR, initRot);
 
             if (marioId == uint.MaxValue)
             {
@@ -59,6 +59,7 @@ namespace LibSM64
 
             var renderer = marioRendererObject.AddComponent<MeshRenderer>();
             var meshFilter = marioRendererObject.AddComponent<MeshFilter>();
+            renderer.forceRenderingOff = true;
 
             states = new Interop.SM64MarioState[2] {
                 new(),
@@ -70,7 +71,7 @@ namespace LibSM64
             surfaceMaterial.SetTexture("_MainTex", Interop.MarioTexture);
             renderer.materials = new Material[] { vertexMaterial, surfaceMaterial };
 
-            marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / RefCache.Scale;
+            marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / Interop.SCALE_FACTOR;
             marioRendererObject.transform.localPosition = Vector3.zero;
 
             lerpPositionBuffer = new Vector3[3 * Interop.SM64_GEO_MAX_TRIANGLES];
@@ -86,7 +87,20 @@ namespace LibSM64
             marioMesh.triangles = Enumerable.Range(0, 3 * Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
             meshFilter.sharedMesh = marioMesh;
 
-            SetState(SM64MarioFlags.MARIO_NORMAL_CAP);
+            await Task.Yield();
+            renderer.forceRenderingOff = false;
+
+            SetAction(SM64MarioAction.ACT_JUMP);
+
+            for (int i = 0; i < 4; i++)
+            {
+                SetFowardVelocity(i * 0.021f);
+                SetUpwardVelocity(0.21f);
+                await Task.Delay(40);
+            }
+
+            await Task.Delay(1200);
+            if (RefCache.IsWingSession) ClaimCap(SM64MarioFlags.MARIO_WING_CAP, ushort.MaxValue);
         }
 
         public void OnDisable()
@@ -140,6 +154,11 @@ namespace LibSM64
             Interop.MarioSetForwardVelocity(marioId, velocity);
         }
 
+        public void SetUpwardVelocity(float velocity)
+        {
+            Interop.MarioSetUpwardVelocity(marioId, velocity);
+        }
+
         public void SetInvincibility(short timer)
         {
             Interop.MarioSetInvincibility(marioId, timer);
@@ -152,7 +171,7 @@ namespace LibSM64
 
         public void SetWaterLevel(float level)
         {
-            level *= RefCache.Config.MarioScale.Value;
+            level *= Interop.SCALE_FACTOR;
             Interop.MarioSetWaterLevel(marioId, Mathf.FloorToInt(level - 0.5f));
         }
 
@@ -244,7 +263,7 @@ namespace LibSM64
                 lerpNormalBuffer[i] = Vector3.LerpUnclamped(normalBuffers[buffIndex][i], normalBuffers[j][i], t);
             }
 
-            transform.position = Vector3.LerpUnclamped(states[buffIndex].unityPosition, states[j].unityPosition, t);
+            transform.position = Vector3.LerpUnclamped(states[buffIndex].UnityPosition, states[j].UnityPosition, t);
             transform.rotation = Quaternion.Euler(0f, 360f - states[buffIndex].faceAngle * Mathf.Rad2Deg, 0f);
 
             marioMesh.vertices = lerpPositionBuffer;

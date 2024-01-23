@@ -19,11 +19,8 @@ namespace MarioMonkeMadness
         // Interaction
         public static MarioEvents Events;
 
-        // Gameplay
-        public static float Scale = 200;
-
         // Logic
-        public static bool IsSteam;
+        public static bool IsSteam, IsWingSession;
         public static Tuple<bool, string> RomData;
     }
 }

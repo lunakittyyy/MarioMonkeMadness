@@ -1,6 +1,7 @@
 ﻿using GorillaExtensions;
 using GorillaLocomotion;
 using GorillaLocomotion.Swimming;
+using HarmonyLib;
 using LibSM64;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,8 +36,8 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
-            collider.includeLayers = LayerMask.GetMask(UnityLayer.GorillaObject.ToString(), UnityLayer.MirrorOnly.ToString(), UnityLayer.NoMirror.ToString(), "Default", UnityLayer.Water.ToString());
-            collider.excludeLayers = LayerMask.GetMask(UnityLayer.GorillaTrigger.ToString(), UnityLayer.IgnoreRaycast.ToString(), UnityLayer.GorillaBoundary.ToString());
+            collider.includeLayers = LayerMask.GetMask("GorillaObject", "MirrorOnly", "NoMirror", "Default", "Water");
+            collider.excludeLayers = LayerMask.GetMask("GorillaTrigger", "IgnoreRaycast", "GorillaBoundary");
         }
 
         private SM64TerrainType TerrainType(GorillaSurfaceOverride surface)
@@ -100,6 +101,14 @@ namespace MarioMonkeMadness.Components
                 Destroy(terrain);
                 SM64Context.RefreshStaticTerrain();
             }
+        }
+
+        public void OnDestroy()
+        {
+            RefCache.TerrainList.Do(terrain => Destroy(terrain));
+            RefCache.TerrainList.Clear();
+
+            RefCache.TerrainUpdated = true;
         }
     }
 }

@@ -7,6 +7,8 @@ namespace LibSM64
 {
     internal static class Interop
     {
+        public const float SCALE_FACTOR = 225.0f;
+
         public const int SM64_TEXTURE_WIDTH = 64 * 11;
         public const int SM64_TEXTURE_HEIGHT = 64;
         public const int SM64_GEO_MAX_TRIANGLES = 1024;
@@ -44,9 +46,9 @@ namespace LibSM64
             public float faceAngle;
             public short health;
 
-            public Vector3 unityPosition
+            public readonly Vector3 UnityPosition
             {
-                get { return position != null ? new Vector3(-position[0], position[1], position[2]) / RefCache.Scale : Vector3.zero; }
+                get { return position != null ? new Vector3(-position[0], position[1], position[2]) / SCALE_FACTOR : Vector3.zero; }
             }
         };
 
@@ -85,7 +87,7 @@ namespace LibSM64
                     return fmod(a + 180.0f, 360.0f) - 180.0f;
                 }
 
-                var pos = RefCache.Scale * Vector3.Scale(position, new Vector3(-1, 1, 1));
+                var pos = SCALE_FACTOR * Vector3.Scale(position, new Vector3(-1, 1, 1));
                 var rot = Vector3.Scale(rotation.eulerAngles, new Vector3(-1, 1, 1));
 
                 rot.x = fixAngle(rot.x);
@@ -117,7 +119,7 @@ namespace LibSM64
         static extern void sm64_static_surfaces_load(SM64Surface[] surfaces, ulong numSurfaces);
 
         [DllImport("sm64")]
-        static extern uint sm64_mario_create(short x, short y, short z);
+        static extern uint sm64_mario_create(short x, short y, short z, short rx, short ry, short rz);
         [DllImport("sm64")]
         static extern void sm64_mario_tick(uint marioId, ref SM64MarioInputs inputs, ref SM64MarioState outState, ref SM64MarioGeometryBuffers outBuffers);
         [DllImport("sm64")]
@@ -137,6 +139,8 @@ namespace LibSM64
         static extern void sm64_set_mario_velocity(uint marioId, float x, float y, float z);
         [DllImport("sm64")]
         static extern void sm64_set_mario_forward_velocity(uint marioId, float vel);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_upward_velocity(uint marioId, float vel);
         [DllImport("sm64")]
         static extern void sm64_set_mario_invincibility(uint marioId, short timer);
         [DllImport("sm64")]
@@ -219,7 +223,7 @@ namespace LibSM64
         public static uint MarioCreate(Vector3 marioPos, Vector3 marioEulerAngles)
         {
             marioEulerAngles = new Vector3(marioEulerAngles.x, 360 - marioEulerAngles.y, marioEulerAngles.z) * SM64_DEG2ANGLE;
-            return sm64_mario_create((short)marioPos.x, (short)marioPos.y, (short)marioPos.z);
+            return sm64_mario_create((short)marioPos.x, (short)marioPos.y, (short)marioPos.z, (short)marioEulerAngles.x, (short)marioEulerAngles.y, (short)marioEulerAngles.z);
         }
 
         public static SM64MarioState MarioTick(uint marioId, SM64MarioInputs inputs, Vector3[] positionBuffer, Vector3[] normalBuffer, Vector3[] colorBuffer, Vector2[] uvBuffer, out ushort numTrianglesUsed)
@@ -268,7 +272,7 @@ namespace LibSM64
 
         public static void MarioSetPosition(uint marioId, Vector3 position)
         {
-            position *= RefCache.Config.MarioScale.Value;
+            position *= SCALE_FACTOR;
             sm64_set_mario_position(marioId, -position.x, position.y, position.z);
         }
 
@@ -289,14 +293,20 @@ namespace LibSM64
 
         public static void MarioSetVelocity(uint marioId, Vector3 velocity)
         {
-            velocity *= RefCache.Config.MarioScale.Value;
+            velocity *= SCALE_FACTOR;
             sm64_set_mario_velocity(marioId, velocity.x, velocity.y, velocity.z);
         }
 
         public static void MarioSetForwardVelocity(uint marioId, float velocity)
         {
-            velocity *= RefCache.Config.MarioScale.Value;
+            velocity *= SCALE_FACTOR;
             sm64_set_mario_forward_velocity(marioId, velocity);
+        }
+
+        public static void MarioSetUpwardVelocity(uint marioId, float velocity)
+        {
+            velocity *= SCALE_FACTOR;
+            sm64_set_mario_upward_velocity(marioId, velocity);
         }
 
         public static void MarioSetInvincibility(uint marioId, short timer)

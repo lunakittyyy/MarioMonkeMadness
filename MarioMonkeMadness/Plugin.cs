@@ -18,8 +18,8 @@ namespace MarioMonkeMadness
     [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version), ModdedGamemode]
     public class Plugin : BaseUnityPlugin
     {
-        private SpawnPoint StumpPoint;
         private GameObject Mario;
+        private GTZone Zone;
 
         public Plugin()
         {
@@ -42,13 +42,22 @@ namespace MarioMonkeMadness
             // Prepare the asset loader, which will retrive assets used throughout the mod
             await new AssetLoader().Initialize();
 
-            // Define the spawn point which represents the location of the Stump
-            SpawnManager spawnManager = FindObjectOfType<SpawnManager>();
-            StumpPoint = spawnManager.GetComponentsInChildren<SpawnPoint>().First();
+            // Spawn the pipes which are used to spawn Mario across different zones in the game
+            SpawnPipe(new Vector3(-66.2741f, 20.633f, -80.9425f), 167f, Tuple.Create(GTZone.forest, 2, "tree/TreeBark (1)"));
+            SpawnPipe(new Vector3(-20.8597f, 16.8839f, -102.7351f), 35.2f, Tuple.Create(GTZone.mountain, 1, "Geometry/V2_mountainsidesnow"));
+            // SpawnPipe(new Vector3(-88.9367f, 183.2826f, -114.4222f), 268.1f, Tuple.Create(GTZone.skyJungle, 1, "Village (1)/OneHousePlatform (3)"));
+            SpawnPipe(new Vector3(-27.6513f, 13.9975f, -107.9862f), 217f, Tuple.Create(GTZone.city, 1, "CosmeticsRoomAnchor/cosmetics room new/cosmeticsroomatlas (combined by EdMeshCombinerSceneProcessor)"));
+            SpawnPipe(new Vector3(-7.1295f, 11.9978f, 19.9363f), 90.8f, Tuple.Create(GTZone.beach, 0, "Beach_Main_Geo/B_Fort_5_5_FBX/B_FORT_5_FLOOR"));
+        }
 
-            // Create the pipes used to spawn Mario
-            SpawnPipe((StumpPoint.transform.position + StumpPoint.transform.forward * 2.8f).WithY(12.8822f), 0f, Tuple.Create(GTZone.forest, 2, "tree/TreeWood"));
-            SpawnPipe(new Vector3(23.596f, 11.32f, 5.1617f), 230f, Tuple.Create(GTZone.beach, 0, "Beach_Main_Geo/B_DocksPier_1/B_Dock_Main1"));
+        public void Update()
+        {
+            // Check if both Mario exists and his particular zone isn't active
+            if (Mario && !ZoneManagement.IsInZone(Zone))
+            {
+                RemoveMario();
+                RefCache.Events.Trigger_SetButtonState(null, Models.ButtonType.Spawn, false);
+            }
         }
 
         // Logic based around the usage of the MarioSpawnPipe and SM64Mario
@@ -58,10 +67,10 @@ namespace MarioMonkeMadness
         {
             // Create our pipe which will be used to spawn and despawn Mario
             MarioSpawnPipe pipe = new();
-            pipe.Create(position, direction);
+            pipe.Create(position, direction, floorObject);
 
             // Define events for our pipe for when its toggled
-            pipe.On += delegate ()
+            pipe.SpawnOn += delegate ()
             {
                 // Apply static terrain for the interior of Stump; Mario can only properly spawn when valid terrain exists
                 ZoneManagement zoneManager = FindObjectOfType<ZoneManagement>();
@@ -70,17 +79,24 @@ namespace MarioMonkeMadness
                 Destroy(zoneRoot.transform.Find(floorObject.Item3).gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
 
                 AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
-                SpawnMario(position - Vector3.up * 0.3f, Vector3.up * direction); // Spawn Mario just underneath the location of the pipe
+                SpawnMario(position + Vector3.up * 0.32f, Vector3.up * direction, floorObject.Item1);
             };
-
-            pipe.Off += delegate ()
+            pipe.SpawnOff += delegate ()
             {
                 AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.4f);
                 RemoveMario();
             };
+            pipe.WingOn += () =>
+            {
+                RefCache.IsWingSession = true;
+            };
+            pipe.WingOff += () =>
+            {
+                RefCache.IsWingSession = false;
+            };
         }
 
-        public void SpawnMario(Vector3 location, Vector3 direction)
+        public void SpawnMario(Vector3 location, Vector3 direction, GTZone zone)
         {
             if (Mario != null) return; // We already have a Mario
 
@@ -96,6 +112,9 @@ namespace MarioMonkeMadness
             // Create other components which Mario uses
             Mario.AddComponent<RealtimeTerrainManager>();
             Mario.AddComponent<SM64Mario>();
+
+            // Define the current zone Mario is set in
+            Zone = zone;
         }
 
         public void RemoveMario()

@@ -32,7 +32,7 @@ namespace LibSM64
         public Action MarioStoppedMoving;
         public GameObject marioRendererObject;
 
-        public async void OnEnable()
+        public void OnEnable()
         {
             SM64Context.RegisterMario(this);
 
@@ -86,8 +86,7 @@ namespace LibSM64
             marioMesh.triangles = Enumerable.Range(0, 3 * Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
             meshFilter.sharedMesh = marioMesh;
 
-            await Task.Delay(500);
-            SetAction(SM64MarioAction.ACT_THROWN_BACKWARD);
+            SetState(SM64MarioFlags.MARIO_NORMAL_CAP);
         }
 
         public void OnDisable()
@@ -110,6 +109,11 @@ namespace LibSM64
             Interop.MarioSetAction(marioId, action);
         }
 
+        public void SetState(SM64MarioFlags flags)
+        {
+            Interop.MarioSetState(marioId, flags);
+        }
+
         public void SetPosition(Vector3 position)
         {
             transform.position = position;
@@ -119,6 +123,11 @@ namespace LibSM64
         public void SetRotation(Quaternion rotation)
         {
             Interop.MarioSetRotation(marioId, rotation);
+        }
+
+        public void SetRotation(float angle)
+        {
+            Interop.MarioSetRotation(marioId, angle);
         }
 
         public void SetVelocity(Vector3 velocity)
@@ -131,9 +140,30 @@ namespace LibSM64
             Interop.MarioSetForwardVelocity(marioId, velocity);
         }
 
-        public void SetColors(Color32[] unityColors)
+        public void SetInvincibility(short timer)
         {
-            Interop.MarioSetColors(unityColors);
+            Interop.MarioSetInvincibility(marioId, timer);
+        }
+
+        public void SetHealth(ushort health)
+        {
+            Interop.MarioSetHealth(marioId, health);
+        }
+
+        public void SetWaterLevel(float level)
+        {
+            level *= RefCache.Config.MarioScale.Value;
+            Interop.MarioSetWaterLevel(marioId, Mathf.FloorToInt(level - 0.5f));
+        }
+
+        public void ClaimCap(uint capFlag, ushort capTime)
+        {
+            Interop.MarioClaimCap(marioId, capFlag, capTime);
+        }
+
+        public void ClaimCap(SM64MarioFlags capFlag, ushort capTime)
+        {
+            ClaimCap((uint)capFlag, capTime);
         }
 
         public void RefreshInputProvider()
@@ -141,13 +171,7 @@ namespace LibSM64
             inputProvider = GetComponent<SM64InputProvider>();
         }
 
-        internal void resetScaleFactor(float oldScale)
-        {
-            SetPosition(transform.position);
-            marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / RefCache.Config.MarioScale.Value;
-        }
-
-        internal void contextFixedUpdate()
+        internal void ContextFixedUpdate()
         {
             if (!enabled || !gameObject.activeInHierarchy) return;
 
@@ -207,7 +231,7 @@ namespace LibSM64
             buffIndex = 1 - buffIndex;
         }
 
-        internal void contextUpdate()
+        internal void ContextUpdate()
         {
             if (!enabled || !gameObject.activeInHierarchy) return;
 
@@ -242,15 +266,6 @@ namespace LibSM64
             if (sm64Vec != null && sm64Vec.Length >= 3)
                 return new Vector3(sm64Vec[0], sm64Vec[1], sm64Vec[2]);
             return Vector3.zero;
-        }
-
-        private void OnDrawGizmos()
-        {
-            if (!Application.isPlaying)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawSphere(transform.position, 0.5f);
-            }
         }
     }
 }

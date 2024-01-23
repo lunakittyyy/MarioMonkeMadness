@@ -108,26 +108,6 @@ namespace LibSM64
             public IntPtr surfaces;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        struct SM64MarioColorGroup
-        {
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
-            public byte[] shade;
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
-            public byte[] color;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct SM64MarioModelColors
-        {
-            public SM64MarioColorGroup blue;
-            public SM64MarioColorGroup red;
-            public SM64MarioColorGroup white;
-            public SM64MarioColorGroup brown1;
-            public SM64MarioColorGroup beige;
-            public SM64MarioColorGroup brown2;
-        }
-
         [DllImport("sm64")]
         static extern void sm64_global_init(IntPtr rom, IntPtr outTexture, IntPtr debugPrintFunctionPtr);
         [DllImport("sm64")]
@@ -137,7 +117,7 @@ namespace LibSM64
         static extern void sm64_static_surfaces_load(SM64Surface[] surfaces, ulong numSurfaces);
 
         [DllImport("sm64")]
-        static extern uint sm64_mario_create(short marioX, short marioY, short marioZ, short marioRx, short marioRy, short marioRz);
+        static extern uint sm64_mario_create(short x, short y, short z);
         [DllImport("sm64")]
         static extern void sm64_mario_tick(uint marioId, ref SM64MarioInputs inputs, ref SM64MarioState outState, ref SM64MarioGeometryBuffers outBuffers);
         [DllImport("sm64")]
@@ -146,15 +126,26 @@ namespace LibSM64
         [DllImport("sm64")]
         static extern void sm64_set_mario_action(uint marioId, uint action);
         [DllImport("sm64")]
-        static extern void sm64_set_mario_position(uint marioId, float marioX, float marioY, float marioZ);
+        static extern void sm64_set_mario_state(uint marioId, uint flags);
         [DllImport("sm64")]
-        static extern void sm64_set_mario_angle(uint marioId, short marioX, short marioY, short marioZ);
+        static extern void sm64_set_mario_position(uint marioId, float x, float y, float z);
         [DllImport("sm64")]
-        static extern void sm64_set_mario_velocity(uint marioId, float velX, float velY, float velZ);
+        static extern void sm64_set_mario_angle(uint marioId, short x, short y, short z);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_faceangle(uint marioId, float y);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_velocity(uint marioId, float x, float y, float z);
         [DllImport("sm64")]
         static extern void sm64_set_mario_forward_velocity(uint marioId, float vel);
         [DllImport("sm64")]
-        static extern void sm64_set_mario_colors(ref SM64MarioModelColors modelColors);
+        static extern void sm64_set_mario_invincibility(uint marioId, short timer);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_health(uint marioId, ushort health);
+
+        [DllImport("sm64"), Obsolete("This method is currently non-functional as the floor level is not set which is required for determinating whether Mario is underwater")]
+        static extern void sm64_set_mario_water_level(uint marioId, int level);
+        [DllImport("sm64")]
+        static extern void sm64_mario_interact_cap(uint marioId, uint capFlag, ushort capTime);
 
         [DllImport("sm64")]
         static extern uint sm64_surface_object_create(ref SM64SurfaceObject surfaceObject);
@@ -189,7 +180,6 @@ namespace LibSM64
             MarioTexture = new Texture2D(SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT);
             for (int ix = 0; ix < SM64_TEXTURE_WIDTH; ix++)
             {
-                if (ix < 64) continue;
                 for (int iy = 0; iy < SM64_TEXTURE_HEIGHT; iy++)
                 {
                     cols[ix + SM64_TEXTURE_WIDTH * iy] = new Color32(
@@ -229,7 +219,7 @@ namespace LibSM64
         public static uint MarioCreate(Vector3 marioPos, Vector3 marioEulerAngles)
         {
             marioEulerAngles = new Vector3(marioEulerAngles.x, 360 - marioEulerAngles.y, marioEulerAngles.z) * SM64_DEG2ANGLE;
-            return sm64_mario_create((short)marioPos.x, (short)marioPos.y, (short)marioPos.z, (short)marioEulerAngles.x, (short)marioEulerAngles.y, (short)marioEulerAngles.z);
+            return sm64_mario_create((short)marioPos.x, (short)marioPos.y, (short)marioPos.z);
         }
 
         public static SM64MarioState MarioTick(uint marioId, SM64MarioInputs inputs, Vector3[] positionBuffer, Vector3[] normalBuffer, Vector3[] colorBuffer, Vector2[] uvBuffer, out ushort numTrianglesUsed)
@@ -268,7 +258,12 @@ namespace LibSM64
 
         public static void MarioSetAction(uint marioId, SM64MarioAction action)
         {
-            sm64_set_mario_action(marioId, (uint)action);
+           sm64_set_mario_action(marioId, (uint)action);
+        }
+
+        public static void MarioSetState(uint marioId, SM64MarioFlags flags)
+        {
+            sm64_set_mario_state(marioId, (uint)flags);
         }
 
         public static void MarioSetPosition(uint marioId, Vector3 position)
@@ -285,6 +280,13 @@ namespace LibSM64
             sm64_set_mario_angle(marioId, (short)eulerAngles.x, (short)eulerAngles.y, (short)eulerAngles.z);
         }
 
+        public static void MarioSetRotation(uint marioId, float angle)
+        {
+            angle = 360 - angle;
+            angle *= SM64_DEG2ANGLE;
+            sm64_set_mario_faceangle(marioId, angle);
+        }
+
         public static void MarioSetVelocity(uint marioId, Vector3 velocity)
         {
             velocity *= RefCache.Config.MarioScale.Value;
@@ -297,28 +299,24 @@ namespace LibSM64
             sm64_set_mario_forward_velocity(marioId, velocity);
         }
 
-        public static void MarioSetColors(Color32[] unityColors)
+        public static void MarioSetInvincibility(uint marioId, short timer)
         {
-            byte[][] colorBytes = new byte[12][];
-            for (int i = 0; i < unityColors.Length; i++)
-            {
-                colorBytes[i] = new byte[3];
-                colorBytes[i][0] = unityColors[i].r;
-                colorBytes[i][1] = unityColors[i].g;
-                colorBytes[i][2] = unityColors[i].b;
-            }
+            sm64_set_mario_invincibility(marioId, timer);
+        }
 
-            SM64MarioModelColors colors = new()
-            {
-                blue = new SM64MarioColorGroup { shade = colorBytes[0], color = colorBytes[1] },
-                red = new SM64MarioColorGroup { shade = colorBytes[2], color = colorBytes[3] },
-                white = new SM64MarioColorGroup { shade = colorBytes[4], color = colorBytes[5] },
-                brown1 = new SM64MarioColorGroup { shade = colorBytes[6], color = colorBytes[7] },
-                beige = new SM64MarioColorGroup { shade = colorBytes[8], color = colorBytes[9] },
-                brown2 = new SM64MarioColorGroup { shade = colorBytes[10], color = colorBytes[11] },
-            };
+        public static void MarioSetHealth(uint marioId, ushort health)
+        {
+            sm64_set_mario_health(marioId, health);
+        }
 
-            sm64_set_mario_colors(ref colors);
+        public static void MarioSetWaterLevel(uint marioId, int level)
+        {
+            // sm64_set_mario_water_level(marioId, level);
+        }
+
+        public static void MarioClaimCap(uint marioId, uint capFlag, ushort capTime)
+        {
+            sm64_mario_interact_cap(marioId, capFlag, capTime);
         }
 
         public static uint SurfaceObjectCreate(Vector3 position, Quaternion rotation, SM64Surface[] surfaces)

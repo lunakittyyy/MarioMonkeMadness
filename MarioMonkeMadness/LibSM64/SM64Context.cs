@@ -32,7 +32,7 @@ namespace LibSM64
                     o.contextUpdate();
 
                 foreach (var o in _marios)
-                    o.contextUpdate();
+                    o.ContextUpdate();
             }
         }
 
@@ -46,7 +46,7 @@ namespace LibSM64
                     o.contextFixedUpdate();
 
                 foreach (var o in _marios)
-                    o.contextFixedUpdate();
+                    o.ContextFixedUpdate();
             }
         }
 
@@ -78,25 +78,6 @@ namespace LibSM64
                 Interop.GlobalTerminate();
                 s_instance = null;
             }
-        }
-
-        public static void SetScaleFactor(float scale)
-        {
-            ensureInstanceExists();
-
-            float oldScale = RefCache.Config.MarioScale.Value / 100.0f;
-
-            RefCache.Config.MarioScale.Value = scale * 100.0f;
-            RefreshStaticTerrain();
-            foreach (var o in s_instance._marios)
-            {
-                o.resetScaleFactor(oldScale);
-            }
-        }
-
-        public static float GetScaleFactor()
-        {
-            return RefCache.Config.MarioScale.Value / 100.0f;
         }
 
         public static void RefreshStaticTerrain()

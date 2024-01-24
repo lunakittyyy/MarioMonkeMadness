@@ -1,5 +1,5 @@
 # MarioMonkeMadness
-**MarioMonkeMadness** is a libsm64 implementation mod for *Gorilla Tag* using a modified version of [libsm64](https://github.com/libsm64/libsm64).
+**MarioMonkeMadness** is a libsm64 implementation mod for *Gorilla Tag* using a [modified version](https://github.com/developer9998/libsm64-mmm) of [libsm64](https://github.com/libsm64/libsm64).
 
 ## Download
 **MarioMonkeMadness** can be downloaded as an archive file under the ``ZIP`` format which can be extracted in the plugins folder.

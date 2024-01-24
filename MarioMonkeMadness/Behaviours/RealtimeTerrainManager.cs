@@ -1,6 +1,4 @@
 ﻿using GorillaExtensions;
-using GorillaLocomotion;
-using GorillaLocomotion.Swimming;
 using HarmonyLib;
 using LibSM64;
 using System.Collections;

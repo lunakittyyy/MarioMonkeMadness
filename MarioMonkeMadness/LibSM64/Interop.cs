@@ -1,4 +1,3 @@
-using MarioMonkeMadness;
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -262,7 +261,7 @@ namespace LibSM64
 
         public static void MarioSetAction(uint marioId, SM64MarioAction action)
         {
-           sm64_set_mario_action(marioId, (uint)action);
+            sm64_set_mario_action(marioId, (uint)action);
         }
 
         public static void MarioSetState(uint marioId, SM64MarioFlags flags)

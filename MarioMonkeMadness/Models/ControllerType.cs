@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MarioMonkeMadness.Models
+﻿namespace MarioMonkeMadness.Models
 {
     public enum ControllerType
     {

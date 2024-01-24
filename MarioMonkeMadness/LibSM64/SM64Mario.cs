@@ -87,7 +87,7 @@ namespace LibSM64
             marioMesh.triangles = Enumerable.Range(0, 3 * Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
             meshFilter.sharedMesh = marioMesh;
 
-            await Task.Yield();
+            await Task.Delay(5);
             renderer.forceRenderingOff = false;
 
             SetAction(SM64MarioAction.ACT_JUMP);

@@ -1,4 +1,5 @@
 ﻿using MarioMonkeMadness;
+using MarioMonkeMadness.Behaviours;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -87,8 +88,12 @@ namespace LibSM64
             marioMesh.triangles = Enumerable.Range(0, 3 * Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
             meshFilter.sharedMesh = marioMesh;
 
-            await Task.Delay(5);
-            renderer.forceRenderingOff = false;
+            transform.localScale = new Vector3(Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f), MarioMonkeMadness.Constants.TriggerLength, Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f));
+
+            GameObject healthBar = Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("HealthBar"));
+            healthBar.transform.SetParent(transform, false);
+            healthBar.AddComponent<MarioHealthBar>().Renderer = renderer;
+            healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
 
             SetAction(SM64MarioAction.ACT_JUMP);
 
@@ -97,6 +102,8 @@ namespace LibSM64
                 SetFowardVelocity(i * 0.021f);
                 SetUpwardVelocity(0.21f);
                 await Task.Delay(40);
+
+                renderer.forceRenderingOff = false;
             }
 
             await Task.Delay(1200);

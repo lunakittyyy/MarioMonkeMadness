@@ -151,6 +151,9 @@ namespace LibSM64
         static extern void sm64_mario_interact_cap(uint marioId, uint capFlag, ushort capTime);
 
         [DllImport("sm64")]
+        static extern ushort sm64_get_mario_health(uint marioId);
+
+        [DllImport("sm64")]
         static extern uint sm64_surface_object_create(ref SM64SurfaceObject surfaceObject);
         [DllImport("sm64")]
         static extern void sm64_surface_object_move(uint objectId, ref SM64ObjectTransform transform);
@@ -316,6 +319,11 @@ namespace LibSM64
         public static void MarioSetHealth(uint marioId, ushort health)
         {
             sm64_set_mario_health(marioId, health);
+        }
+
+        public static ushort MarioHealth(uint marioId)
+        {
+            return sm64_get_mario_health(marioId);
         }
 
         public static void MarioSetWaterLevel(uint marioId, int level)

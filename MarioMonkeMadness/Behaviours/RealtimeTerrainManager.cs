@@ -20,19 +20,19 @@ namespace MarioMonkeMadness.Components
 
         public IEnumerator Start()
         {
-            Mario = GetComponent<SM64Mario>();
+            Transform transform = gameObject.transform; // prevent internal call implementation
+            transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
 
+            Mario = GetComponent<SM64Mario>();
             yield return new WaitForSeconds(0.25f - Mathf.Pow(Time.deltaTime, 2f));
 
             gameObject.layer = (int)UnityLayer.GorillaBodyCollider;
 
-            Transform transform = gameObject.transform; // prevent internal call implementation
             Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
             rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
             rigidbody.isKinematic = true;
 
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
-            transform.localScale = new Vector3(Mathf.Pow(Constants.TriggerLength, 0.28f), Constants.TriggerLength, Mathf.Pow(Constants.TriggerLength, 0.28f));
             collider.isTrigger = true;
             collider.includeLayers = LayerMask.GetMask("GorillaObject", "MirrorOnly", "NoMirror", "Default", "Water");
             collider.excludeLayers = LayerMask.GetMask("GorillaTrigger", "IgnoreRaycast", "GorillaBoundary");

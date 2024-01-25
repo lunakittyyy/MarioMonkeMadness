@@ -1,12 +1,12 @@
 # MarioMonkeMadness
-**MarioMonkeMadness** is a libsm64 implementation mod for *__Gorilla Tag__* using [libsm64-unity](https://github.com/libsm64/libsm64-unity/).
+**MarioMonkeMadness** is a libsm64 implementation mod for *Gorilla Tag* using a [modified version](https://github.com/developer9998/libsm64-mmm) of [libsm64](https://github.com/libsm64/libsm64).
 
 ## Download
 **MarioMonkeMadness** can be downloaded as an archive file under the ``ZIP`` format which can be extracted in the plugins folder.
 
 ## Install
-**MarioMonkeMadness** requires a ``ROM`` file of *__Super Mario 64 [US] z64__* to function as intended.
-- Obtain a copy of *__Super Mario 64 [US] z64 ROM (MD5 20b854b239203baf6c961b850a4a51a2)__*
+**MarioMonkeMadness** requires a ``ROM`` file of ``Super Mario 64 [US] z64`` to function as intended.
+- Obtain a copy of a ``Super Mario 64 [US] z64`` ROM
 - Place the ``ROM`` into your *__Gorilla Tag__* folder, preferably with the name ``baserom.us.z64``
 - The mod will automatically detect this file, and will present a warning if it cannot be located
 

@@ -1,4 +1,5 @@
-﻿using LibSM64;
+﻿using GorillaExtensions;
+using LibSM64;
 using UnityEngine;
 
 namespace MarioMonkeMadness.Behaviours
@@ -6,7 +7,7 @@ namespace MarioMonkeMadness.Behaviours
     public class MarioHealthBar : MonoBehaviour
     {
         public MeshRenderer Renderer;
-        private float dist = 10.2f;
+
         private new Transform transform;
         private SM64Mario Mario;
 
@@ -18,7 +19,7 @@ namespace MarioMonkeMadness.Behaviours
 
         public void Update()
         {
-            transform.position = Mario.transform.position + (Vector3.up * (Renderer.bounds.size.y - dist));
+            transform.position = Mario.transform.position.WithY(Renderer.bounds.max.y + 0.05f);
         }
     }
 }

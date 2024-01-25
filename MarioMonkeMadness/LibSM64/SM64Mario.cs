@@ -89,12 +89,6 @@ namespace LibSM64
             meshFilter.sharedMesh = marioMesh;
 
             transform.localScale = new Vector3(Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f), MarioMonkeMadness.Constants.TriggerLength, Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f));
-
-            GameObject healthBar = Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("HealthBar"));
-            healthBar.transform.SetParent(transform, false);
-            healthBar.AddComponent<MarioHealthBar>().Renderer = renderer;
-            healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
-
             SetAction(SM64MarioAction.ACT_JUMP);
 
             for (int i = 0; i < 4; i++)
@@ -107,6 +101,11 @@ namespace LibSM64
             }
 
             await Task.Delay(1200);
+            GameObject healthBar = Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("HealthBar"));
+            healthBar.transform.SetParent(transform, false);
+            healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
+            healthBar.AddComponent<MarioHealthBar>().Renderer = renderer;
+
             if (RefCache.IsWingSession) ClaimCap(SM64MarioFlags.MARIO_WING_CAP, ushort.MaxValue);
         }
 

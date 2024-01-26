@@ -39,24 +39,21 @@ namespace MarioMonkeMadness.Behaviours
 
             if (RefCache.RomData.Item1) // If a Super Mario 64 ROM exists, define and setup our buttons
             {
-                void UpdateBtn_Spawn() => UpdateButton(ButtonType.Spawn);
-                void UpdateBtn_Wing() => UpdateButton(ButtonType.Wing);
-
                 UnityEvent spawnEvent = new();
-                spawnEvent.AddListener(new UnityAction(UpdateBtn_Spawn));
+                spawnEvent.AddListener(new UnityAction(() => UpdateButton(ButtonType.Spawn)));
 
-                SpawnButton = Pipe.transform.Find("Selection/Spawn Button").gameObject.AddComponent<GorillaPressableButton>();
+                SpawnButton = Pipe.transform.Find("Selection/Main/Spawn Button").gameObject.AddComponent<GorillaPressableButton>();
                 SpawnButton.buttonRenderer = SpawnButton.GetComponent<MeshRenderer>();
-                SpawnButton.debounceTime = 0.6f;
+                SpawnButton.debounceTime = 0.7f;
                 SpawnButton.myText = SpawnButton.transform.Find("Button Text").GetComponent<Text>();
                 SpawnButton.offText = "CREATE";
                 SpawnButton.onText = "REMOVE";
                 SpawnButton.onPressButton = spawnEvent;
 
                 UnityEvent wingEvent = new();
-                wingEvent.AddListener(new UnityAction(UpdateBtn_Wing));
+                wingEvent.AddListener(new UnityAction(() => UpdateButton(ButtonType.Wing)));
 
-                WingButton = Pipe.transform.Find("Selection/Wingcap Button").gameObject.AddComponent<GorillaPressableButton>();
+                WingButton = Pipe.transform.Find("Selection/Main/Wingcap Button").gameObject.AddComponent<GorillaPressableButton>();
                 WingButton.buttonRenderer = WingButton.GetComponent<MeshRenderer>();
                 WingButton.debounceTime = 0.25f;
                 WingButton.myText = WingButton.transform.Find("Button Text").GetComponent<Text>();
@@ -66,7 +63,8 @@ namespace MarioMonkeMadness.Behaviours
             }
             else // If a Super Mario 64 ROM doesn't exist, display a sign which can futher assist the player with using the ROM
             {
-                Pipe.transform.Find("Sign").gameObject.SetActive(true);
+                Pipe.transform.Find("Selection/Main").gameObject.SetActive(false);
+                Pipe.transform.Find("Selection/Notice").gameObject.SetActive(true);
             }
 
             MarioEvents.SetButtonState += RemoteUpdate;

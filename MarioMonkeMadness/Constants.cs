@@ -24,7 +24,7 @@
         /// <summary>
         /// The manifest path of the main asset bundle
         /// </summary>
-        public const string BundlePath = "MarioMonkeMadness.Resources.mariomaterial";
+        public const string BundlePath = "MarioMonkeMadness.Resources.mariobundle";
 
         // Logic
 

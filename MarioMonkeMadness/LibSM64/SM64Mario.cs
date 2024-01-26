@@ -87,8 +87,16 @@ namespace LibSM64
             marioMesh.vertices = lerpPositionBuffer;
             marioMesh.triangles = Enumerable.Range(0, 3 * Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
             meshFilter.sharedMesh = marioMesh;
+            
+            // Define our health bar
+            GameObject healthBar = Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("HealthBar"));
+            healthBar.transform.SetParent(transform, false);
+            healthBar.AddComponent<MarioHealthBar>().Renderer = renderer;
 
+            // Update scaling of objects
             transform.localScale = new Vector3(Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f), MarioMonkeMadness.Constants.TriggerLength, Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f));
+            healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
+
             SetAction(SM64MarioAction.ACT_JUMP);
 
             for (int i = 0; i < 4; i++)
@@ -101,10 +109,6 @@ namespace LibSM64
             }
 
             await Task.Delay(1200);
-            GameObject healthBar = Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("HealthBar"));
-            healthBar.transform.SetParent(transform, false);
-            healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
-            healthBar.AddComponent<MarioHealthBar>().Renderer = renderer;
 
             if (RefCache.IsWingSession) ClaimCap(SM64MarioFlags.MARIO_WING_CAP, ushort.MaxValue);
         }
@@ -123,6 +127,8 @@ namespace LibSM64
                 Interop.MarioDelete(marioId);
             }
         }
+
+        public ushort MarioHealth() => (ushort)(Interop.MarioHealth(marioId) / 272);
 
         public void SetAction(SM64MarioAction action)
         {
@@ -172,6 +178,7 @@ namespace LibSM64
 
         public void SetHealth(ushort health)
         {
+            health *= 272;
             Interop.MarioSetHealth(marioId, health);
         }
 

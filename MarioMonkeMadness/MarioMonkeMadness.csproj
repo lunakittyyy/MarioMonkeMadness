@@ -3,13 +3,11 @@
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 	</PropertyGroup>
-
 	<ItemGroup>
-		<None Remove="Resources\mariomaterial" />
+	  <None Remove="Resources\mariobundle" />
 	</ItemGroup>
-
 	<ItemGroup>
-		<EmbeddedResource Include="Resources\mariomaterial" />
+	  <EmbeddedResource Include="Resources\mariobundle" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,4 +1,6 @@
 # MarioMonkeMadness
+![mmm-preview](https://github.com/lunakittyyy/MarioMonkeMadness/assets/17483712/c701c8f0-b7fe-4e55-9a1c-73258c34b53b)
+
 **MarioMonkeMadness** is a libsm64 implementation mod for *Gorilla Tag* using a [modified version](https://github.com/developer9998/libsm64-mmm) of [libsm64](https://github.com/libsm64/libsm64).
 
 ## Download

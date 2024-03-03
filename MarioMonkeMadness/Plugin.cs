@@ -77,10 +77,11 @@ namespace MarioMonkeMadness
                 AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
 
                 // Momentarily apply static terrain to the floor underneath the pipe
-                ZoneManagement zoneManager = FindObjectOfType<ZoneManagement>();
-                ZoneData zoneData = (ZoneData)AccessTools.Method(typeof(ZoneManagement), "GetZoneData").Invoke(zoneManager, new object[] { floorObject.Item1 });
-                GameObject zoneRoot = zoneData.rootGameObjects[floorObject.Item2];
-                Destroy(zoneRoot.transform.Find(floorObject.Item3).gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
+                Collider[] colliders = Physics.OverlapSphere(position, 1);
+                foreach (var collider in colliders)
+                {
+                    Destroy(collider.gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
+                }
 
                 // Create a new Mario at the location of the Pipe
                 SpawnMario(position + Vector3.up * 0.32f, Vector3.up * direction, floorObject.Item1);

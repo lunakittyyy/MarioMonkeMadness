@@ -10,11 +10,10 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using Utilla;
 
 namespace MarioMonkeMadness
 {
-    [BepInDependency("org.legoandmars.gorillatag.utilla", "1.5.0"), BepInPlugin(Constants.Guid, Constants.Name, Constants.Version), ModdedGamemode]
+    [BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
     public class Plugin : BaseUnityPlugin
     {
         public AssetLoader asl;
@@ -28,10 +27,10 @@ namespace MarioMonkeMadness
             new Configuration(this);
             new Harmony(Constants.Guid).PatchAll(typeof(Plugin).Assembly);
 
-            Events.GameInitialized += OnGameInitialized;
+            GorillaTagger.OnPlayerSpawned(OnGameInitialized);
         }
 
-        public async void OnGameInitialized(object sender, EventArgs e)
+        public async void OnGameInitialized()
         {
             // Cache a boolean based on whether the user is playing the game on a Steam platform
             RefCache.IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
@@ -128,7 +127,7 @@ namespace MarioMonkeMadness
 
         public void RemoveMario()
         {
-            if (Mario == null) return; // We can't despawn a Mario, there is none
+            if (!Mario) return; // We can't despawn a Mario, there is none
 
             // Notifies the SM64Mario component to de-register Mario
             Mario.GetComponent<SM64Mario>().enabled = false;

@@ -4,8 +4,9 @@ using LibSM64;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using GorillaLocomotion;
+using static GorillaLocomotion.GTPlayer;
 using UnityEngine;
-using static GorillaLocomotion.Player;
 
 namespace MarioMonkeMadness.Components
 {
@@ -15,7 +16,7 @@ namespace MarioMonkeMadness.Components
 
         private bool Twirling;
 
-        private readonly List<MaterialData> MaterialCollection = Instance.materialData;
+        private readonly List<GTPlayer.MaterialData> MaterialCollection = Instance.materialData;
         private readonly float SlipThreshold = Instance.iceThreshold;
 
         public IEnumerator Start()

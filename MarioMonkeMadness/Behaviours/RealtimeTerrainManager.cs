@@ -4,6 +4,7 @@ using LibSM64;
 using System.Collections;
 using System.Collections.Generic;
 using GorillaLocomotion;
+using GorillaLocomotion.Swimming;
 using static GorillaLocomotion.GTPlayer;
 using UnityEngine;
 
@@ -84,6 +85,11 @@ namespace MarioMonkeMadness.Components
 
         public void OnTriggerEnter(Collider other)
         {
+            if (TryGetComponent<WaterVolume>(out var water))
+            {
+                var collider = water.GetComponent<BoxCollider>();
+                Interop.SetWaterLevel(0, Mathf.RoundToInt(collider.bounds.max.y * Interop.SCALE_FACTOR));
+            }
             if (IsValidCollider(other) && initializedColliders.Add(other))
             {
                 AddTerrainComponent(other);

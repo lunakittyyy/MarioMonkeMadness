@@ -23,7 +23,6 @@ namespace MarioMonkeMadness
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
         private GameObject Mario;
         private GTZone Zone;
-        private const float FPS = 30;
         private float UpdateTick, FixedUpdateTick;
 
         public Plugin()
@@ -55,7 +54,7 @@ namespace MarioMonkeMadness
             SpawnPipe(new Vector3(-17.2362f, 16.8497f, -110.3898f), 35.2f, Tuple.Create(GTZone.mountain, 1, "Geometry/V2_mountainsidesnow"));
             SpawnPipe(new Vector3(-27.6513f, 13.9975f, -107.9862f), 217f, Tuple.Create(GTZone.city, 1, "CosmeticsRoomAnchor/cosmetics room new/cosmeticsroomatlas (combined by EdMeshCombinerSceneProcessor)"));
             SpawnPipe(new Vector3(-7.1295f, 11.9978f, 19.9363f), 90.8f, Tuple.Create(GTZone.beach, 0, "Beach_Main_Geo/B_Fort_5_5_FBX/B_FORT_5_FLOOR"));
-            SpawnPipe(new Vector3(92.8274f, -93.409f, 44.9466f), 90f, Tuple.Create(GTZone.critters, 0, "Critters/Critters_Environment/Landscape/Critters_Landscape/Critters_LandscapeByMaterial002"));
+            SpawnPipe(new Vector3(125.0817f, -104.3998f, 77.5353f), 180f, Tuple.Create(GTZone.critters, 0, "Critters/Critters_Environment/Landscape/Critters_Landscape/Critters_LandscapeByMaterial002"));
         }
 
         public void Update()
@@ -101,8 +100,9 @@ namespace MarioMonkeMadness
 
             pipe.SpawnOn += () =>
             {
-                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
-                
+                //AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
+                Interop.PlaySound(SM64Constants.SOUND_MENU_STAR_SOUND_LETS_A_GO);
+                Interop.PlaySound(SM64Constants.SOUND_MENU_EXIT_PIPE);
                 Collider[] colliders = Physics.OverlapSphere(position, 1);
                 foreach (var collider in colliders)
                 {
@@ -144,8 +144,8 @@ namespace MarioMonkeMadness
             {
                 MarioHandler.SetMaterial();
                 RegisterMario(MarioHandler);
-                Interop.SetWaterLevel(MarioHandler.marioId, -15000);
-                Interop.SetGasLevel(MarioHandler.marioId, -15000);
+                Interop.SetWaterLevel(MarioHandler.marioId, -50000);
+                Interop.SetGasLevel(MarioHandler.marioId, -50000);
             }
             Zone = zone;
         }

@@ -3,7 +3,6 @@ using HarmonyLib;
 using LibSM64;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using GorillaLocomotion;
 using static GorillaLocomotion.GTPlayer;
 using UnityEngine;

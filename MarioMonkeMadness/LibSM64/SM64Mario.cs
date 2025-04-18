@@ -25,7 +25,7 @@ namespace LibSM64
         public GameObject marioRendererObject;
         MeshRenderer renderer;
         Mesh marioMesh;
-        int marioId;
+        public int marioId;
 
         float tick;
         public Action<SM64Mario> changeActionCallback = null;

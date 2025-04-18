@@ -396,6 +396,11 @@ namespace LibSM64
             uvHandle.Free();
         }
 
+        public static void SetWaterLevel(int marioId, int waterLevel)
+        {
+            sm64_set_mario_water_level(marioId, waterLevel);
+        }
+        
         public static void MarioDelete( int marioId )
         {
             sm64_mario_delete( marioId );

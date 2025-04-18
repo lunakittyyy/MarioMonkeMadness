@@ -13,11 +13,12 @@ namespace MarioMonkeMadness.Components
     public class RealtimeTerrainManager : MonoBehaviour
     {
         private SM64Mario Mario;
-
         private bool Twirling;
 
         private readonly List<GTPlayer.MaterialData> MaterialCollection = Instance.materialData;
         private readonly float SlipThreshold = Instance.iceThreshold;
+
+        private readonly HashSet<Collider> initializedColliders = new();
 
         public IEnumerator Start()
         {
@@ -39,6 +40,22 @@ namespace MarioMonkeMadness.Components
             collider.excludeLayers = LayerMask.GetMask("GorillaTrigger", "IgnoreRaycast", "GorillaBoundary");
         }
 
+        private bool IsValidCollider(Collider collider)
+        {
+            return collider is MeshCollider && !collider.isTrigger && !collider.GetComponent<SM64StaticTerrain>();
+        }
+
+        private void AddTerrainComponent(Collider collider)
+        {
+            var terrain = collider.gameObject.AddComponent<SM64StaticTerrain>();
+
+            if (collider.TryGetComponent(out GorillaSurfaceOverride surface))
+            {
+                terrain.TerrainType = TerrainType(surface);
+                terrain.SurfaceType = SurfaceType(surface);
+            }
+        }
+
         private SM64TerrainType TerrainType(GorillaSurfaceOverride surface)
         {
             return MaterialCollection[surface.overrideIndex].matName switch
@@ -50,42 +67,36 @@ namespace MarioMonkeMadness.Components
             };
         }
 
-        private SM64SurfaceType SurfaceType(GorillaSurfaceOverride surface) => MaterialCollection[surface.overrideIndex].slidePercent >= SlipThreshold ? SM64SurfaceType.Ice : SM64SurfaceType.Default;
+        private SM64SurfaceType SurfaceType(GorillaSurfaceOverride surface)
+        {
+            return MaterialCollection[surface.overrideIndex].slidePercent >= SlipThreshold
+                ? SM64SurfaceType.Ice
+                : SM64SurfaceType.Default;
+        }
 
         public void OnTriggerEnter(Collider other)
         {
-            if (other is MeshCollider && !other.isTrigger && !other.GetComponent<SM64StaticTerrain>())
+            if (IsValidCollider(other) && initializedColliders.Add(other))
             {
-                SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
-                if (other.TryGetComponent(out GorillaSurfaceOverride surface))
-                {
-                    terrain.TerrainType = TerrainType(surface);
-                    terrain.SurfaceType = SurfaceType(surface);
-                }
+                AddTerrainComponent(other);
                 Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
             }
         }
 
         public void OnTriggerStay(Collider other)
         {
-            if (other is MeshCollider && !other.isTrigger && !other.GetComponent<SM64StaticTerrain>())
+            if (IsValidCollider(other) && initializedColliders.Add(other))
             {
-                SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
-                if (other.TryGetComponent(out GorillaSurfaceOverride surface))
-                {
-                    terrain.TerrainType = TerrainType(surface);
-                    terrain.SurfaceType = SurfaceType(surface);
-                }
+                AddTerrainComponent(other);
                 Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
+                return;
             }
-            else if (other.GetComponent<SM64StaticTerrain>() && Physics.OverlapSphere(transform.position - Vector3.up * 0.2f, 0.12f, GetComponent<BoxCollider>().includeLayers, QueryTriggerInteraction.Ignore).Contains(other))
+
+            if (other.GetComponent<SM64StaticTerrain>() &&
+                Physics.OverlapSphere(transform.position - Vector3.up * 0.2f, 0.12f,
+                    GetComponent<BoxCollider>().includeLayers, QueryTriggerInteraction.Ignore).Contains(other))
             {
-                if (!Twirling && other.TryGetComponent(out GorillaSurfaceOverride surface) && surface.extraVelMultiplier > 1)
-                {
-                    Mario.SetVelocity(Vector3.up * surface.extraVelMultiplier / 5f);
-                    Mario.SetAction(SM64Constants.Action.ACT_TWIRLING);
-                    Twirling = true;
-                }
+                TryApplyTwirling(other);
             }
             else
             {
@@ -93,12 +104,27 @@ namespace MarioMonkeMadness.Components
             }
         }
 
+        private void TryApplyTwirling(Collider other)
+        {
+            if (Twirling) return;
+
+            if (other.TryGetComponent(out GorillaSurfaceOverride surface) && surface.extraVelMultiplier > 1)
+            {
+                Mario.SetVelocity(Vector3.up * surface.extraVelMultiplier / 5f);
+                Mario.SetAction(SM64Constants.Action.ACT_TWIRLING);
+                Twirling = true;
+            }
+        }
+
         public void OnTriggerExit(Collider other)
         {
-            if (other.TryGetComponent<SM64StaticTerrain>(out var terrain))
+            if (initializedColliders.Remove(other))
             {
-                Destroy(terrain);
-                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
+                if (other.TryGetComponent<SM64StaticTerrain>(out var terrain))
+                {
+                    Destroy(terrain);
+                    Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
+                }
             }
         }
 
@@ -106,7 +132,6 @@ namespace MarioMonkeMadness.Components
         {
             RefCache.TerrainList.Do(terrain => Destroy(terrain));
             RefCache.TerrainList.Clear();
-
             RefCache.TerrainUpdated = true;
         }
     }

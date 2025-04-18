@@ -2,6 +2,7 @@
 using UnityEngine;
 using LibSM64;
 using System;
+using MarioMonkeMadness;
 
 
 namespace LibSM64
@@ -92,11 +93,12 @@ namespace LibSM64
             }
         }
 
-        public void SetMaterial(Material m)
+        public void SetMaterial()
         {
-            material = m;
-            renderer.sharedMaterial = m;
-            renderer.sharedMaterial.mainTexture = Interop.marioTexture;
+            var vertexMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/VertexColourShader"));
+            var surfaceMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader"));
+            surfaceMaterial.SetTexture("_MainTex", Interop.marioTexture);
+            renderer.materials = new Material[] { vertexMaterial, surfaceMaterial };
         }
 
         public void SetColors(Color32[] colors)

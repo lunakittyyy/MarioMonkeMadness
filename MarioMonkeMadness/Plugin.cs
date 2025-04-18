@@ -23,6 +23,8 @@ namespace MarioMonkeMadness
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
         private GameObject Mario;
         private GTZone Zone;
+        private const float FPS = 30;
+        private float UpdateTick, FixedUpdateTick;
 
         public Plugin()
         {
@@ -64,13 +66,14 @@ namespace MarioMonkeMadness
                 RemoveMario();
                 RefCache.Events.Trigger_SetButtonState(null, Models.ButtonType.Spawn, false);
             }
+            
             foreach (var o in _surfaceObjects)
                 o.contextUpdate();
 
             foreach (var o in _marios)
                 o.contextUpdate();
         }
-        
+
         public void FixedUpdate()
         {
             foreach (var o in _surfaceObjects)
@@ -98,15 +101,14 @@ namespace MarioMonkeMadness
             pipe.SpawnOn += () =>
             {
                 AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
-
-                // Momentarily apply static terrain to the floor underneath the pipe
+                
                 Collider[] colliders = Physics.OverlapSphere(position, 1);
                 foreach (var collider in colliders)
                 {
+                    if (collider is not MeshCollider) continue; 
                     Destroy(collider.gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
-                    //Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
                 }
-
+                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
                 // Create a new Mario at the location of the Pipe
                 SpawnMario(position + Vector3.up * 0.32f, Vector3.up * direction, floorObject.Item1);
             };
@@ -135,10 +137,11 @@ namespace MarioMonkeMadness
             Mario.transform.position = position;
             Mario.transform.eulerAngles = direction;
             Mario.AddComponent<RealtimeTerrainManager>();
+            Mario.AddComponent<VRInputProvider>();
             var MarioHandler = Mario.AddComponent<SM64Mario>();
             if (MarioHandler.spawned)
             {
-                MarioHandler.SetMaterial(new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader")));
+                MarioHandler.SetMaterial();
                 RegisterMario(MarioHandler);
             }
             Zone = zone;

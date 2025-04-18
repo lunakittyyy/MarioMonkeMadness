@@ -59,10 +59,10 @@ namespace MarioMonkeMadness.Components
                 SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
                 if (other.TryGetComponent(out GorillaSurfaceOverride surface))
                 {
-                    terrain.terrainType = TerrainType(surface);
-                    terrain.surfaceType = SurfaceType(surface);
+                    terrain.TerrainType = TerrainType(surface);
+                    terrain.SurfaceType = SurfaceType(surface);
                 }
-                SM64Context.RefreshStaticTerrain();
+                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
             }
         }
 
@@ -73,17 +73,17 @@ namespace MarioMonkeMadness.Components
                 SM64StaticTerrain terrain = other.gameObject.AddComponent<SM64StaticTerrain>();
                 if (other.TryGetComponent(out GorillaSurfaceOverride surface))
                 {
-                    terrain.terrainType = TerrainType(surface);
-                    terrain.surfaceType = SurfaceType(surface);
+                    terrain.TerrainType = TerrainType(surface);
+                    terrain.SurfaceType = SurfaceType(surface);
                 }
-                SM64Context.RefreshStaticTerrain();
+                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
             }
             else if (other.GetComponent<SM64StaticTerrain>() && Physics.OverlapSphere(transform.position - Vector3.up * 0.2f, 0.12f, GetComponent<BoxCollider>().includeLayers, QueryTriggerInteraction.Ignore).Contains(other))
             {
                 if (!Twirling && other.TryGetComponent(out GorillaSurfaceOverride surface) && surface.extraVelMultiplier > 1)
                 {
                     Mario.SetVelocity(Vector3.up * surface.extraVelMultiplier / 5f);
-                    Mario.SetAction(SM64MarioAction.ACT_TWIRLING);
+                    Mario.SetAction(SM64Constants.Action.ACT_TWIRLING);
                     Twirling = true;
                 }
             }
@@ -98,7 +98,7 @@ namespace MarioMonkeMadness.Components
             if (other.TryGetComponent<SM64StaticTerrain>(out var terrain))
             {
                 Destroy(terrain);
-                SM64Context.RefreshStaticTerrain();
+                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
             }
         }
 

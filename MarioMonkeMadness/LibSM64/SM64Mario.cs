@@ -1,54 +1,47 @@
-﻿using MarioMonkeMadness;
-using MarioMonkeMadness.Behaviours;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using UnityEngine;
+using LibSM64;
+using System;
+
 
 namespace LibSM64
 {
     public class SM64Mario : MonoBehaviour
     {
-        Material vertexMaterial, surfaceMaterial;
-        private SM64InputProvider inputProvider;
+        Material material = null;
+        SM64InputProvider inputProvider;
 
-        private Vector3[][] positionBuffers;
-        private Vector3[][] normalBuffers;
-        private Vector3[] lerpPositionBuffer;
-        private Vector3[] lerpNormalBuffer;
-        private Vector3[] colorBuffer;
-        private Color[] colorBufferColors;
-        private Vector2[] uvBuffer;
-        private ushort numTrianglesUsed;
-        private int buffIndex;
-        private Interop.SM64MarioState[] states;
+        Vector3[][] positionBuffers;
+        Vector3[][] normalBuffers;
+        Vector3[] lerpPositionBuffer;
+        Vector3[] lerpNormalBuffer;
+        Vector3[] colorBuffer;
+        Color[] colorBufferColors;
+        Vector2[] uvBuffer;
+        int buffIndex;
+        Interop.SM64MarioState[] states;
 
-        private Mesh marioMesh;
-        private uint marioId;
-
-        private Vector3 previousVelocity;
-        private ushort previousNumTrianglesUsed = 0;
-
-        public Action MarioStartedMoving;
-        public Action MarioStoppedMoving;
         public GameObject marioRendererObject;
+        MeshRenderer renderer;
+        Mesh marioMesh;
+        int marioId;
 
-        public async void OnEnable()
+        float tick;
+        public Action<SM64Mario> changeActionCallback = null;
+        public Action<SM64Mario> advanceAnimFrameCallback = null;
+
+        public bool spawned { get { return marioId != -1; } }
+
+        public Interop.SM64MarioState marioState { get { return states[buffIndex]; } }
+
+        void OnEnable()
         {
-            SM64Context.RegisterMario(this);
-
             var initPos = transform.position;
-            var initRot = transform.eulerAngles;
-            marioId = Interop.MarioCreate(new Vector3(-initPos.x, initPos.y, initPos.z) * Interop.SCALE_FACTOR, initRot);
+            marioId = Interop.MarioCreate( new Vector3( -initPos.x, initPos.y, initPos.z ) * Interop.SCALE_FACTOR );
 
-            if (marioId == uint.MaxValue)
+            if (marioId == -1)
             {
-                SM64Context.UnregisterMario(this);
-                return;
-            }
-            else
-            {
-                Debug.Log("Mario spawned outside of a surface. Deleting...");
+                throw new System.Exception($"Failed to spawn Mario at {-initPos.x},{initPos.y},{initPos.z}");
             }
 
             inputProvider = GetComponent<SM64InputProvider>();
@@ -58,23 +51,17 @@ namespace LibSM64
             marioRendererObject = new GameObject("MARIO");
             marioRendererObject.hideFlags |= HideFlags.HideInHierarchy;
 
-            var renderer = marioRendererObject.AddComponent<MeshRenderer>();
+            renderer = marioRendererObject.AddComponent<MeshRenderer>();
             var meshFilter = marioRendererObject.AddComponent<MeshFilter>();
-            renderer.forceRenderingOff = true;
 
             states = new Interop.SM64MarioState[2] {
-                new(),
-                new()
+                new Interop.SM64MarioState(),
+                new Interop.SM64MarioState()
             };
 
-            vertexMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/VertexColourShader"));
-            surfaceMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader"));
-            surfaceMaterial.SetTexture("_MainTex", Interop.MarioTexture);
-            renderer.materials = new Material[] { vertexMaterial, surfaceMaterial };
-
-            marioRendererObject.transform.localScale = new Vector3(-1, 1, 1) / Interop.SCALE_FACTOR;
+            marioRendererObject.transform.localScale = new Vector3( -1, 1, 1 ) / Interop.SCALE_FACTOR;
             marioRendererObject.transform.localPosition = Vector3.zero;
-
+            
             lerpPositionBuffer = new Vector3[3 * Interop.SM64_GEO_MAX_TRIANGLES];
             lerpNormalBuffer = new Vector3[3 * Interop.SM64_GEO_MAX_TRIANGLES];
             positionBuffers = new Vector3[][] { new Vector3[3 * Interop.SM64_GEO_MAX_TRIANGLES], new Vector3[3 * Interop.SM64_GEO_MAX_TRIANGLES] };
@@ -85,131 +72,133 @@ namespace LibSM64
 
             marioMesh = new Mesh();
             marioMesh.vertices = lerpPositionBuffer;
-            marioMesh.triangles = Enumerable.Range(0, 3 * Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
+            marioMesh.triangles = Enumerable.Range(0, 3*Interop.SM64_GEO_MAX_TRIANGLES).ToArray();
             meshFilter.sharedMesh = marioMesh;
-            
-            // Define our health bar
-            GameObject healthBar = Instantiate(RefCache.AssetLoader.GetAsset<GameObject>("HealthBar"));
-            healthBar.transform.SetParent(transform, false);
-            healthBar.AddComponent<MarioHealthBar>().Renderer = renderer;
 
-            // Update scaling of objects
-            transform.localScale = new Vector3(Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f), MarioMonkeMadness.Constants.TriggerLength, Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f));
-            healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
-
-            SetAction(SM64MarioAction.ACT_JUMP);
-
-            for (int i = 0; i < 4; i++)
-            {
-                SetFowardVelocity(i * 0.021f);
-                SetUpwardVelocity(0.21f);
-                await Task.Delay(40);
-
-                renderer.forceRenderingOff = false;
-            }
-
-            await Task.Delay(1200);
-
-            if (RefCache.IsWingSession) ClaimCap(SM64MarioFlags.MARIO_WING_CAP, ushort.MaxValue);
+            tick = 0f;
         }
 
-        public void OnDisable()
+        void OnDisable()
         {
-            if (marioRendererObject != null)
+            if ( marioRendererObject != null )
             {
-                Destroy(marioRendererObject);
+                Destroy( marioRendererObject );
                 marioRendererObject = null;
             }
 
-            if (Interop.IsGlobalInit)
+            if( Interop.isGlobalInit )
             {
-                SM64Context.UnregisterMario(this);
-                Interop.MarioDelete(marioId);
+                Interop.MarioDelete( marioId );
             }
         }
 
-        public ushort MarioHealth() => (ushort)(Interop.MarioHealth(marioId) / 272);
-
-        public void SetAction(SM64MarioAction action)
+        public void SetMaterial(Material m)
         {
-            Interop.MarioSetAction(marioId, action);
+            material = m;
+            renderer.sharedMaterial = m;
+            renderer.sharedMaterial.mainTexture = Interop.marioTexture;
         }
 
-        public void SetState(SM64MarioFlags flags)
+        public void SetColors(Color32[] colors)
         {
-            Interop.MarioSetState(marioId, flags);
+            if (colors.Length != 6)
+                return;
+
+            renderer.sharedMaterial.mainTexture = Interop.GenerateTexture(colors);
         }
 
         public void SetPosition(Vector3 position)
         {
-            transform.position = position;
             Interop.MarioSetPosition(marioId, position);
+            transform.position = position;
         }
 
-        public void SetRotation(Quaternion rotation)
+        public void SetVelocity(Vector3 vel)
         {
-            Interop.MarioSetRotation(marioId, rotation);
+            Interop.MarioSetVelocity(marioId, vel);
         }
 
-        public void SetRotation(float angle)
+        public void SetForwardVelocity(float vel)
         {
-            Interop.MarioSetRotation(marioId, angle);
+            Interop.MarioSetForwardVelocity(marioId, vel);
         }
 
-        public void SetVelocity(Vector3 velocity)
+        public void TakeDamage(uint damage, uint subtype, Vector3 pos)
         {
-            Interop.MarioSetVelocity(marioId, velocity);
-        }
-
-        public void SetFowardVelocity(float velocity)
-        {
-            Interop.MarioSetForwardVelocity(marioId, velocity);
-        }
-
-        public void SetUpwardVelocity(float velocity)
-        {
-            Interop.MarioSetUpwardVelocity(marioId, velocity);
-        }
-
-        public void SetInvincibility(short timer)
-        {
-            Interop.MarioSetInvincibility(marioId, timer);
+            Interop.MarioTakeDamage(marioId, damage, subtype, pos);
         }
 
         public void SetHealth(ushort health)
         {
-            health *= 272;
             Interop.MarioSetHealth(marioId, health);
         }
 
-        public void SetWaterLevel(float level)
+        public void Kill()
         {
-            level *= Interop.SCALE_FACTOR;
-            Interop.MarioSetWaterLevel(marioId, Mathf.FloorToInt(level - 0.5f));
+            Interop.MarioKill(marioId);
         }
 
-        public void ClaimCap(uint capFlag, ushort capTime)
+        public void SetAngle(float x, float y, float z)
         {
-            Interop.MarioClaimCap(marioId, capFlag, capTime);
+            Interop.MarioSetAngle(marioId, x, y, z);
         }
 
-        public void ClaimCap(SM64MarioFlags capFlag, ushort capTime)
+        public void SetFaceAngle(float angle)
         {
-            ClaimCap((uint)capFlag, capTime);
+            Interop.MarioSetFaceAngle(marioId, angle);
         }
 
-        public void RefreshInputProvider()
+        public void SetAction(SM64Constants.Action action)
         {
-            inputProvider = GetComponent<SM64InputProvider>();
-        }
-
-        internal void ContextFixedUpdate()
-        {
-            if (!enabled || !gameObject.activeInHierarchy) return;
-
-            var inputs = new Interop.SM64MarioInputs();
-            if (inputProvider != null)
+            Interop.MarioSetAction(marioId, action);
+            for (int i = 0; i < states.Length; i++)
             {
+                states[i].action = (uint)action;
+                states[i].actionState = 0;
+                states[i].actionTimer = 0;
+            }
+        }
+
+        public void SetAction(SM64Constants.Action action, uint actionArg)
+        {
+            Interop.MarioSetAction(marioId, action, actionArg);
+            for (int i = 0; i < states.Length; i++)
+            {
+                states[i].action = (uint)action;
+                states[i].actionState = 0;
+                states[i].actionTimer = 0;
+            }
+        }
+
+        public void SetAnim(SM64Constants.MarioAnimID animID)
+        {
+            Interop.MarioSetAnim(marioId, animID);
+            for (int i = 0; i < states.Length; i++)
+                states[i].animID = (short)animID;
+        }
+
+        public void SetAnimFrame(short frame)
+        {
+            Interop.MarioSetAnimFrame(marioId, frame);
+            for (int i = 0; i < states.Length; i++)
+                states[i].animFrame = frame;
+        }
+
+        public bool Attack(Vector3 pos, float hitboxHeight)
+        {
+            return Interop.MarioAttack(marioId, pos, hitboxHeight);
+        }
+
+        public void contextFixedUpdate()
+        {
+            uint oldAction = marioState.action;
+            uint oldActionArg = marioState.actionArg;
+            short oldFrame = marioState.animFrame;
+
+            tick += Time.fixedDeltaTime;
+            while (tick >= 1 / 30f)
+            {
+                var inputs = new Interop.SM64MarioInputs();
                 var look = inputProvider.GetCameraLookDirection();
                 look.y = 0;
                 look = look.normalized;
@@ -220,84 +209,68 @@ namespace LibSM64
                 inputs.camLookZ = look.z;
                 inputs.stickX = joystick.x;
                 inputs.stickY = -joystick.y;
-                inputs.buttonA = inputProvider.GetButtonHeld(SM64InputProvider.Button.Jump) ? (byte)1 : (byte)0;
-                inputs.buttonB = inputProvider.GetButtonHeld(SM64InputProvider.Button.Kick) ? (byte)1 : (byte)0;
-                inputs.buttonZ = inputProvider.GetButtonHeld(SM64InputProvider.Button.Stomp) ? (byte)1 : (byte)0;
+                inputs.buttonA = inputProvider.GetButtonHeld( SM64InputProvider.Button.Jump  ) ? (byte)1 : (byte)0;
+                inputs.buttonB = inputProvider.GetButtonHeld( SM64InputProvider.Button.Kick  ) ? (byte)1 : (byte)0;
+                inputs.buttonZ = inputProvider.GetButtonHeld( SM64InputProvider.Button.Stomp ) ? (byte)1 : (byte)0;
+
+                Interop.MarioTick( marioId, inputs, ref states[buffIndex], positionBuffers[buffIndex], normalBuffers[buffIndex], colorBuffer, uvBuffer );
+
+                for (int i = 0; i < 3*Interop.SM64_GEO_MAX_TRIANGLES; ++i)
+                {
+                    positionBuffers[buffIndex][i] -= new Vector3(states[buffIndex].position[0], states[buffIndex].position[1], states[buffIndex].position[2]);
+                    colorBufferColors[i] = new Color(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
+                    if (uvBuffer[i].x == 1f && uvBuffer[i].y == 1f)
+                    {
+                        Color32 col32 = new Color32((byte)(colorBuffer[i].x * 255), (byte)(colorBuffer[i].y * 255), (byte)(colorBuffer[i].z * 255), 1);
+                        for (int j = 0; j < Interop.defaultColors.Length; j++)
+                        {
+                            if (Interop.defaultColors[j].r == col32.r && Interop.defaultColors[j].g == col32.g && Interop.defaultColors[j].b == col32.b)
+                            {
+                                uvBuffer[i].x = (1024 - 16) / 1024f;
+                                uvBuffer[i].y = (j * 10 + 5) / 64f;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                marioMesh.colors = colorBufferColors;
+                marioMesh.uv = uvBuffer;
+
+                buffIndex = 1 - buffIndex;
+
+                tick -= 1/30f;
             }
 
-            states[buffIndex] = Interop.MarioTick(marioId, inputs, positionBuffers[buffIndex], normalBuffers[buffIndex], colorBuffer, uvBuffer, out numTrianglesUsed);
-
-            if (previousNumTrianglesUsed != numTrianglesUsed)
+            if (changeActionCallback != null && (oldAction != marioState.action || oldActionArg != marioState.actionArg))
             {
-                for (int i = numTrianglesUsed * 3; i < positionBuffers[buffIndex].Length; i++)
-                {
-                    positionBuffers[buffIndex][i] = Vector3.zero;
-                    normalBuffers[buffIndex][i] = Vector3.zero;
-                }
-                positionBuffers[buffIndex].CopyTo(positionBuffers[1 - buffIndex], 0);
-                normalBuffers[buffIndex].CopyTo(normalBuffers[1 - buffIndex], 0);
-                positionBuffers[buffIndex].CopyTo(lerpPositionBuffer, 0);
-                normalBuffers[buffIndex].CopyTo(lerpNormalBuffer, 0);
-
-                previousNumTrianglesUsed = numTrianglesUsed;
+                changeActionCallback(this);
             }
-
-            Color baseColour = GorillaTagger.Instance.offlineVRRig.materialsToChangeTo[0].color;
-            for (int i = 0; i < colorBuffer.Length; ++i)
+            if (advanceAnimFrameCallback != null && oldFrame != marioState.animFrame)
             {
-                Color originalColour = new(colorBuffer[i].x, colorBuffer[i].y, colorBuffer[i].z, 1);
-                if (RefCache.Config.CustomColour.Value)
-                {
-                    Color.RGBToHSV(originalColour, out _, out float s, out float v);
-                    colorBufferColors[i] = baseColour * Mathf.LerpUnclamped(v, s, s % v);
-                }
-                else
-                {
-                    colorBufferColors[i] = originalColour;
-                }
+                advanceAnimFrameCallback(this);
             }
-
-            marioMesh.colors = colorBufferColors;
-            marioMesh.uv = uvBuffer;
-
-            buffIndex = 1 - buffIndex;
         }
 
-        internal void ContextUpdate()
+        public void contextUpdate()
         {
-            if (!enabled || !gameObject.activeInHierarchy) return;
-
-            float t = RefCache.Config.Interpolation.Value ? (Time.time - Time.fixedTime) / Time.fixedDeltaTime : 1f;
+            float t = tick / (1 / 30f);
             int j = 1 - buffIndex;
 
-            for (int i = 0; i < numTrianglesUsed * 3; ++i)
+            for( int i = 0; i < lerpPositionBuffer.Length; ++i )
             {
-                lerpPositionBuffer[i] = Vector3.LerpUnclamped(positionBuffers[buffIndex][i], positionBuffers[j][i], t);
-                lerpNormalBuffer[i] = Vector3.LerpUnclamped(normalBuffers[buffIndex][i], normalBuffers[j][i], t);
+                lerpPositionBuffer[i] = Vector3.LerpUnclamped( positionBuffers[buffIndex][i], positionBuffers[j][i], t );
+                lerpNormalBuffer[i] = Vector3.LerpUnclamped( normalBuffers[buffIndex][i], normalBuffers[j][i], t );
             }
 
-            transform.position = Vector3.LerpUnclamped(states[buffIndex].UnityPosition, states[j].UnityPosition, t);
-            transform.rotation = Quaternion.Euler(0f, 360f - states[buffIndex].faceAngle * Mathf.Rad2Deg, 0f);
+            transform.position = Vector3.LerpUnclamped( states[buffIndex].unityPosition, states[j].unityPosition, t );
+            marioRendererObject.transform.position = transform.position;
 
             marioMesh.vertices = lerpPositionBuffer;
             marioMesh.normals = lerpNormalBuffer;
 
             marioMesh.RecalculateBounds();
             marioMesh.RecalculateTangents();
-
-            Vector3 velocity = SM64Vec3ToVector3(states[buffIndex].velocity);
-            if (MarioStartedMoving != null && previousVelocity.magnitude == 0 && velocity.magnitude > 0)
-                MarioStartedMoving.Invoke();
-            else if (MarioStoppedMoving != null && velocity.magnitude == 0 && previousVelocity.magnitude > 0)
-                MarioStoppedMoving.Invoke();
-            previousVelocity = velocity;
-        }
-
-        private Vector3 SM64Vec3ToVector3(float[] sm64Vec)
-        {
-            if (sm64Vec != null && sm64Vec.Length >= 3)
-                return new Vector3(sm64Vec[0], sm64Vec[1], sm64Vec[2]);
-            return Vector3.zero;
         }
     }
 }

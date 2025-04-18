@@ -7,6 +7,7 @@ using MarioMonkeMadness.Components;
 using MarioMonkeMadness.Interaction;
 using MarioMonkeMadness.Tools;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -16,13 +17,16 @@ namespace MarioMonkeMadness
     [BepInPlugin(Constants.Guid, Constants.Name, Constants.Version)]
     public class Plugin : BaseUnityPlugin
     {
+        public static Plugin Instance;
         public AssetLoader asl;
-
+        static List<SM64Mario> _marios = new List<SM64Mario>();
+        static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
         private GameObject Mario;
         private GTZone Zone;
 
         public Plugin()
         {
+            Instance = this;
             new MarioEvents();
             new Configuration(this);
             new Harmony(Constants.Guid).PatchAll(typeof(Plugin).Assembly);
@@ -38,7 +42,9 @@ namespace MarioMonkeMadness
             // Cache a tuple (ROM state, ROM path) based on any ROM file which can be found in the current directory
             string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.z64");
             RefCache.RomData = files.Any() ? Tuple.Create(true, files.First()) : Tuple.Create(false, string.Empty);
-
+            
+            Interop.GlobalInit(File.ReadAllBytes(files.First()));
+            
             // Prepare the asset loader, when initialized loads all assets found within the assetbundle
             await new AssetLoader().Initialize();
 
@@ -58,8 +64,26 @@ namespace MarioMonkeMadness
                 RemoveMario();
                 RefCache.Events.Trigger_SetButtonState(null, Models.ButtonType.Spawn, false);
             }
-        }
+            foreach (var o in _surfaceObjects)
+                o.contextUpdate();
 
+            foreach (var o in _marios)
+                o.contextUpdate();
+        }
+        
+        public void FixedUpdate()
+        {
+            foreach (var o in _surfaceObjects)
+                o.contextFixedUpdate();
+
+            foreach (var o in _marios)
+                o.contextFixedUpdate();
+        }
+        public void OnDestroy()
+        {
+            Interop.GlobalTerminate();
+        }
+        
         // Logic based around the usage of the MarioSpawnPipe and SM64Mario
         #region General Logic
 
@@ -80,6 +104,7 @@ namespace MarioMonkeMadness
                 foreach (var collider in colliders)
                 {
                     Destroy(collider.gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
+                    //Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
                 }
 
                 // Create a new Mario at the location of the Pipe
@@ -104,39 +129,91 @@ namespace MarioMonkeMadness
             };
         }
 
-        public void SpawnMario(Vector3 location, Vector3 direction, GTZone zone)
+        public void SpawnMario(Vector3 position, Vector3 direction, GTZone zone)
         {
-            if (Mario != null) return; // We already have a Mario
-
-            // Create the Mario object and move him to our location, we will be storing his components here
-            Mario = new GameObject(string.Format("{0} | Mario", Constants.Name));
-            Mario.transform.position = location;
+            var Mario = new GameObject("Mario");
+            Mario.transform.position = position;
             Mario.transform.eulerAngles = direction;
-
-            // Create the input provider for Mario so we can control him
-            MarioInputProvider inputProvider = Mario.AddComponent<MarioInputProvider>();
-            inputProvider.Camera = GorillaTagger.Instance.mainCamera.transform;
-
-            // Create other components which Mario uses
             Mario.AddComponent<RealtimeTerrainManager>();
-            Mario.AddComponent<SM64Mario>();
-
-            // Define the current zone Mario is set in
+            var MarioHandler = Mario.AddComponent<SM64Mario>();
+            if (MarioHandler.spawned)
+            {
+                MarioHandler.SetMaterial(new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader")));
+                RegisterMario(MarioHandler);
+            }
             Zone = zone;
         }
-
+        
         public void RemoveMario()
         {
-            if (!Mario) return; // We can't despawn a Mario, there is none
-
-            // Notifies the SM64Mario component to de-register Mario
-            Mario.GetComponent<SM64Mario>().enabled = false;
-
-            // Delete the Mario object and fix his reference
-            Destroy(Mario);
-            Mario = null;
+            foreach (var mario in _marios)
+            {
+                UnregisterMario(mario);
+            }
         }
 
+        public void RegisterMario(SM64Mario mario)
+        {
+            if (!_marios.Contains(mario))
+                _marios.Add(mario);
+        }
+
+        public void UnregisterMario(SM64Mario mario)
+        {
+            if (_marios.Contains(mario))
+                _marios.Remove(mario);
+        }
+        
+        public void RegisterSurfaceObject(SM64DynamicTerrain surfaceObject)
+        {
+            if (!_surfaceObjects.Contains(surfaceObject))
+                _surfaceObjects.Add(surfaceObject);
+        }
+
+        public void UnregisterSurfaceObject(SM64DynamicTerrain surfaceObject)
+        {
+            if (_surfaceObjects.Contains(surfaceObject))
+                _surfaceObjects.Remove(surfaceObject);
+        }
+        
+         Vector3[] GetColliderVertexPositions(BoxCollider col)
+        {
+            var trans = col.transform;
+            var min = (col.center - col.size * 0.5f);
+            var max = (col.center + col.size * 0.5f);
+
+            Vector3 savedPos = trans.position;
+
+            var P000 = trans.TransformPoint(new Vector3(min.x, min.y, min.z));
+            var P001 = trans.TransformPoint(new Vector3(min.x, min.y, max.z));
+            var P010 = trans.TransformPoint(new Vector3(min.x, max.y, min.z));
+            var P011 = trans.TransformPoint(new Vector3(min.x, max.y, max.z));
+            var P100 = trans.TransformPoint(new Vector3(max.x, min.y, min.z));
+            var P101 = trans.TransformPoint(new Vector3(max.x, min.y, max.z));
+            var P110 = trans.TransformPoint(new Vector3(max.x, max.y, min.z));
+            var P111 = trans.TransformPoint(new Vector3(max.x, max.y, max.z));
+
+            return new Vector3[] { P000, P001, P010, P011, P100, P101, P110, P111 };
+            /*
+            var vertices = new Vector3[8];
+            var thisMatrix = col.transform.localToWorldMatrix;
+            var storedRotation = col.transform.rotation;
+            col.transform.rotation = Quaternion.identity;
+
+            var extents = col.bounds.extents;
+            vertices[0] = thisMatrix.MultiplyPoint3x4(-extents);
+            vertices[1] = thisMatrix.MultiplyPoint3x4(new Vector3(-extents.x, -extents.y, extents.z));
+            vertices[2] = thisMatrix.MultiplyPoint3x4(new Vector3(-extents.x, extents.y, -extents.z));
+            vertices[3] = thisMatrix.MultiplyPoint3x4(new Vector3(-extents.x, extents.y, extents.z));
+            vertices[4] = thisMatrix.MultiplyPoint3x4(new Vector3(extents.x, -extents.y, -extents.z));
+            vertices[5] = thisMatrix.MultiplyPoint3x4(new Vector3(extents.x, -extents.y, extents.z));
+            vertices[6] = thisMatrix.MultiplyPoint3x4(new Vector3(extents.x, extents.y, -extents.z));
+            vertices[7] = thisMatrix.MultiplyPoint3x4(extents);
+
+            col.transform.rotation = storedRotation;
+            return vertices;
+            */
+        }
         #endregion
     }
 }

@@ -1,26 +1,10 @@
-﻿using MarioMonkeMadness;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace LibSM64
 {
     public class SM64StaticTerrain : MonoBehaviour
     {
-        internal SM64TerrainType terrainType = SM64TerrainType.Grass;
-        internal SM64SurfaceType surfaceType = SM64SurfaceType.Default;
-
-        public SM64TerrainType TerrainType { get { return terrainType; } }
-        public SM64SurfaceType SurfaceType { get { return surfaceType; } }
-
-        public void Awake()
-        {
-            RefCache.TerrainList.Add(this);
-            RefCache.TerrainUpdated = true;
-        }
-
-        public void OnDestroy()
-        {
-            RefCache.TerrainList.Remove(this);
-            RefCache.TerrainUpdated = true;
-        }
+        [SerializeField] public SM64TerrainType TerrainType = SM64TerrainType.Grass;
+        [SerializeField] public SM64SurfaceType SurfaceType = SM64SurfaceType.Default;
     }
 }

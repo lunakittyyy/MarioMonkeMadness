@@ -1,20 +1,56 @@
-using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
+using System.Runtime.InteropServices;
+using System;
 
 namespace LibSM64
 {
-    internal static class Interop
+    public static class Interop
     {
-        public const float SCALE_FACTOR = 225.0f;
+        public const float SCALE_FACTOR = 150.0f;
 
-        public const int SM64_TEXTURE_WIDTH = 64 * 11;
+        public const int SM64_TEXTURE_WIDTH  = 64 * 16;
         public const int SM64_TEXTURE_HEIGHT = 64;
         public const int SM64_GEO_MAX_TRIANGLES = 1024;
 
         public const int SM64_MAX_HEALTH = 8;
 
-        public const float SM64_DEG2ANGLE = 182.04459f;
+        public static Color32[] defaultColors = {
+	        new Color32(0  , 0  , 255, 255), // Overalls
+	        new Color32(255, 0  , 0  , 255), // Shirt/Hat
+                new Color32(254, 193, 121, 255), // Skin
+	        new Color32(115, 6  , 0  , 255), // Hair
+	        new Color32(255, 255, 255, 255), // Gloves
+	        new Color32(114, 28 , 14 , 255), // Shoes
+        };
+
+        struct alphaRemovalArea
+        {
+            public alphaRemovalArea(int _x, int _y, int _w, int _h, int col)
+            {
+                x = _x;
+                y = _y;
+                w = _w;
+                h = _h;
+                colorIndex = col;
+            }
+
+            public int x;
+            public int y;
+            public int w;
+            public int h;
+            public int colorIndex;
+        }
+        // welcome to hardcode town
+        static alphaRemovalArea[] removalAreas = {
+            new alphaRemovalArea(64,     0, 32, 32, 0), // Shirt buttons
+            new alphaRemovalArea(128-16, 0, 64, 64, 1), // M cap logo
+            new alphaRemovalArea(192-16, 0, 64, 64, 2), // Side hair
+            new alphaRemovalArea(256-16, 0, 64, 64, 2), // Moustache
+            new alphaRemovalArea(320-16, 0, 64, 64, 2), // Eyes (Normal)
+            new alphaRemovalArea(384-16, 0, 64, 64, 2), // Eyes (Half-blink)
+            new alphaRemovalArea(448-16, 0, 64, 64, 2), // Eyes (Closed)
+            new alphaRemovalArea(512-16, 0, 64, 64, 2), // Eyes (Dead)
+        };
 
         [StructLayout(LayoutKind.Sequential)]
         public struct SM64Surface
@@ -22,9 +58,9 @@ namespace LibSM64
             public short type;
             public short force;
             public ushort terrain;
-            public short v0x, v0y, v0z;
-            public short v1x, v1y, v1z;
-            public short v2x, v2y, v2z;
+            public int v0x, v0y, v0z;
+            public int v1x, v1y, v1z;
+            public int v2x, v2y, v2z;
         };
 
         [StructLayout(LayoutKind.Sequential)]
@@ -38,16 +74,33 @@ namespace LibSM64
         [StructLayout(LayoutKind.Sequential)]
         public struct SM64MarioState
         {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
             public float[] position;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
             public float[] velocity;
+            public float forwardVel;
             public float faceAngle;
+            public float twirlYaw;
             public short health;
+            public uint action;
+            public uint actionArg;
+            public uint actionState;
+            public uint actionTimer;
+            public uint flags;
+            public uint particleFlags;
+            public short invincTimer;
+            public byte hurtCounter;
 
-            public readonly Vector3 UnityPosition
-            {
-                get { return position != null ? new Vector3(-position[0], position[1], position[2]) / SCALE_FACTOR : Vector3.zero; }
+            public short animID;
+            public short animFrame;
+            public ushort animTimer;
+            public int animAccel;
+            public short animStartFrame;
+            public short animLoopStart;
+            public short animLoopEnd;
+
+            public Vector3 unityPosition {
+                get { return position != null ? new Vector3( -position[0], position[1], position[2] ) / SCALE_FACTOR : Vector3.zero; }
             }
         };
 
@@ -64,39 +117,38 @@ namespace LibSM64
         [StructLayout(LayoutKind.Sequential)]
         struct SM64ObjectTransform
         {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
             float[] position;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 3)]
             float[] eulerRotation;
 
-            static public SM64ObjectTransform FromUnityWorld(Vector3 position, Quaternion rotation)
+            static public SM64ObjectTransform FromUnityWorld( Vector3 position, Quaternion rotation )
             {
-                float[] vecToArr(Vector3 v)
+                float[] vecToArr( Vector3 v )
                 {
                     return new float[] { v.x, v.y, v.z };
                 }
 
-                float fmod(float a, float b)
+                float fmod( float a, float b )
                 {
-                    return a - b * Mathf.Floor(a / b);
+                    return a - b * Mathf.Floor( a / b );
+                }
+                
+                float fixAngle( float a )
+                {
+                    return fmod( a + 180.0f, 360.0f ) - 180.0f;
                 }
 
-                float fixAngle(float a)
-                {
-                    return fmod(a + 180.0f, 360.0f) - 180.0f;
-                }
+                var pos = SCALE_FACTOR * Vector3.Scale( position, new Vector3( -1, 1, 1 ));
+                var rot = Vector3.Scale( rotation.eulerAngles, new Vector3( -1, 1, 1 ));
 
-                var pos = SCALE_FACTOR * Vector3.Scale(position, new Vector3(-1, 1, 1));
-                var rot = Vector3.Scale(rotation.eulerAngles, new Vector3(-1, 1, 1));
+                rot.x = fixAngle( rot.x );
+                rot.y = fixAngle( rot.y );
+                rot.z = fixAngle( rot.z );
 
-                rot.x = fixAngle(rot.x);
-                rot.y = fixAngle(rot.y);
-                rot.z = fixAngle(rot.z);
-
-                return new SM64ObjectTransform
-                {
-                    position = vecToArr(pos),
-                    eulerRotation = vecToArr(rot)
+                return new SM64ObjectTransform {
+                    position = vecToArr( pos ),
+                    eulerRotation = vecToArr( rot )
                 };
             }
         };
@@ -110,80 +162,132 @@ namespace LibSM64
         }
 
         [DllImport("sm64")]
-        static extern void sm64_global_init(IntPtr rom, IntPtr outTexture, IntPtr debugPrintFunctionPtr);
+        static extern void sm64_global_init( IntPtr rom, IntPtr outTexture );
         [DllImport("sm64")]
         static extern void sm64_global_terminate();
 
         [DllImport("sm64")]
-        static extern void sm64_static_surfaces_load(SM64Surface[] surfaces, ulong numSurfaces);
+        static extern void sm64_audio_init( IntPtr rom );
+        [DllImport("sm64")]
+        static extern uint sm64_audio_tick(uint numQueuedSamples, uint numDesiredSamples, short[] audio_buffer);
 
         [DllImport("sm64")]
-        static extern uint sm64_mario_create(short x, short y, short z, short rx, short ry, short rz);
-        [DllImport("sm64")]
-        static extern void sm64_mario_tick(uint marioId, ref SM64MarioInputs inputs, ref SM64MarioState outState, ref SM64MarioGeometryBuffers outBuffers);
-        [DllImport("sm64")]
-        static extern void sm64_mario_delete(uint marioId);
+        static extern void sm64_static_surfaces_load( SM64Surface[] surfaces, ulong numSurfaces );
 
         [DllImport("sm64")]
-        static extern void sm64_set_mario_action(uint marioId, uint action);
+        static extern int sm64_mario_create( float marioX, float marioY, float marioZ );
         [DllImport("sm64")]
-        static extern void sm64_set_mario_state(uint marioId, uint flags);
+        static extern void sm64_mario_tick( int marioId, ref SM64MarioInputs inputs, ref SM64MarioState outState, ref SM64MarioGeometryBuffers outBuffers );
         [DllImport("sm64")]
-        static extern void sm64_set_mario_position(uint marioId, float x, float y, float z);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_angle(uint marioId, short x, short y, short z);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_faceangle(uint marioId, float y);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_velocity(uint marioId, float x, float y, float z);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_forward_velocity(uint marioId, float vel);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_upward_velocity(uint marioId, float vel);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_invincibility(uint marioId, short timer);
-        [DllImport("sm64")]
-        static extern void sm64_set_mario_health(uint marioId, ushort health);
-
-        [DllImport("sm64"), Obsolete("This method is currently non-functional as the floor level is not set which is required for determinating whether Mario is underwater")]
-        static extern void sm64_set_mario_water_level(uint marioId, int level);
-        [DllImport("sm64")]
-        static extern void sm64_mario_interact_cap(uint marioId, uint capFlag, ushort capTime);
+        static extern void sm64_mario_delete( int marioId );
 
         [DllImport("sm64")]
-        static extern ushort sm64_get_mario_health(uint marioId);
+        static extern void sm64_set_mario_action(int marioId, uint action);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_action_arg(int marioId, uint action, uint actionArg);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_animation(int marioId, int animID);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_anim_frame(int marioId, short animFrame);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_state(int marioId, uint flags);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_position(int marioId, float x, float y, float z);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_angle(int marioId, float x, float y, float z);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_faceangle(int marioId, float y);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_velocity(int marioId, float x, float y, float z);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_forward_velocity(int marioId, float vel);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_invincibility(int marioId, short timer);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_water_level(int marioId, int level);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_gas_level(int marioId, int level);
+        [DllImport("sm64")]
+        static extern void sm64_set_mario_health(int marioId, ushort health);
+        [DllImport("sm64")]
+        static extern void sm64_mario_take_damage(int marioId, uint damage, uint subtype, float x, float y, float z);
+        [DllImport("sm64")]
+        static extern void sm64_mario_heal(int marioId, byte healCounter);
+        [DllImport("sm64")]
+        static extern void sm64_mario_kill(int marioId);
+        [DllImport("sm64")]
+        static extern void sm64_mario_interact_cap(int marioId, uint capFlag, ushort capTime, byte playMusic);
+        [DllImport("sm64")]
+        static extern void sm64_mario_extend_cap(int marioId, ushort capTime);
+        [DllImport("sm64")]
+        static extern bool sm64_mario_attack(int marioId, float x, float y, float z, float hitboxHeight);
 
         [DllImport("sm64")]
-        static extern uint sm64_surface_object_create(ref SM64SurfaceObject surfaceObject);
+        static extern uint sm64_surface_object_create( ref SM64SurfaceObject surfaceObject );
         [DllImport("sm64")]
-        static extern void sm64_surface_object_move(uint objectId, ref SM64ObjectTransform transform);
+        static extern void sm64_surface_object_move( uint objectId, ref SM64ObjectTransform transform );
         [DllImport("sm64")]
-        static extern void sm64_surface_object_delete(uint objectId);
+        static extern void sm64_surface_object_delete( uint objectId );
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        [DllImport("sm64")]
+        static extern int sm64_surface_find_wall_collision(float[] xPtr, float[] yPtr, float[] zPtr, float offsetY, float radius);
+        [DllImport("sm64")]
+        static extern float sm64_surface_find_floor_height_and_data(float xPos, float yPos, float zPos);
+        [DllImport("sm64")]
+        static extern float sm64_surface_find_floor_height(float x, float y, float z);
+        [DllImport("sm64")]
+        static extern float sm64_surface_find_floor(float xPos, float yPos, float zPos);
+        [DllImport("sm64")]
+        static extern float sm64_surface_find_water_level(float x, float z);
+        [DllImport("sm64")]
+        static extern float sm64_surface_find_poison_gas_level(float x, float z);
+
+        [DllImport("sm64")]
+        static extern void sm64_seq_player_play_sequence(byte player, byte seqId, ushort arg2);
+        [DllImport("sm64")]
+        static extern void sm64_play_music(byte player, ushort seqArgs, ushort fadeTimer);
+        [DllImport("sm64")]
+        static extern void sm64_stop_background_music(ushort seqId);
+        [DllImport("sm64")]
+        static extern void sm64_fadeout_background_music(ushort arg0, ushort fadeOut);
+        [DllImport("sm64")]
+        static extern ushort sm64_get_current_background_music();
+        [DllImport("sm64")]
+        static extern void sm64_play_sound(uint soundBits, float[] pos);
+        [DllImport("sm64")]
+        static extern void sm64_play_sound_global(uint soundBits);
+        [DllImport("sm64")]
+        static extern void sm64_set_sound_volume(float vol);
+
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         delegate void DebugPrintFuncDelegate(string str);
 
-        static public Texture2D MarioTexture { get; private set; }
-        static public bool IsGlobalInit { get; private set; }
+        [DllImport("sm64")]
+        static extern void sm64_register_debug_print_function(IntPtr debugPrintFunction);
 
-        static void DebugPrintCallback(string str)
+        static public Texture2D defaultTexture { get; private set; }
+        static public Texture2D marioTexture { get; private set; }
+        static public bool isGlobalInit { get; private set; }
+
+        static void debugPrintCallback(string str)
         {
-#if DEBUG
             Debug.Log("libsm64: " + str);
-#endif
         }
 
-        public static void GlobalInit(byte[] rom)
+        public static void GlobalInit( byte[] rom )
         {
-            var callbackDelegate = new DebugPrintFuncDelegate(DebugPrintCallback);
-            var romHandle = GCHandle.Alloc(rom, GCHandleType.Pinned);
-            var textureData = new byte[4 * SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT];
-            var textureDataHandle = GCHandle.Alloc(textureData, GCHandleType.Pinned);
+            //var debugDelegate = new DebugPrintFuncDelegate( debugPrintCallback );
+            var romHandle = GCHandle.Alloc( rom, GCHandleType.Pinned );
+            var textureData = new byte[ 4 * SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT ];
+            var textureDataHandle = GCHandle.Alloc( textureData, GCHandleType.Pinned );
 
-            sm64_global_init(romHandle.AddrOfPinnedObject(), textureDataHandle.AddrOfPinnedObject(), Marshal.GetFunctionPointerForDelegate(callbackDelegate));
+            sm64_global_init( romHandle.AddrOfPinnedObject(), textureDataHandle.AddrOfPinnedObject());
+            sm64_audio_init( romHandle.AddrOfPinnedObject() );
+            //sm64_register_debug_print_function(Marshal.GetFunctionPointerForDelegate(debugDelegate));
 
-            Color32[] cols = new Color32[SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT];
-            MarioTexture = new Texture2D(SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT);
+            Color32[] cols = new Color32[ SM64_TEXTURE_WIDTH * SM64_TEXTURE_HEIGHT ];
+            defaultTexture = new Texture2D( SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT, TextureFormat.RGBA32, false );
             for (int ix = 0; ix < SM64_TEXTURE_WIDTH; ix++)
             {
                 for (int iy = 0; iy < SM64_TEXTURE_HEIGHT; iy++)
@@ -197,173 +301,209 @@ namespace LibSM64
                 }
             }
 
-            MarioTexture.SetPixels32(cols);
-            MarioTexture.Apply();
+            defaultTexture.SetPixels32(cols);
+            defaultTexture.Apply();
 
-            // Modify the Mario texture to better fit the model
-            MarioTexture.filterMode = FilterMode.Point;
-            MarioTexture.wrapMode = TextureWrapMode.Clamp;
+            marioTexture = GenerateTexture(defaultColors);
 
             romHandle.Free();
             textureDataHandle.Free();
 
-            IsGlobalInit = true;
+            sm64_play_sound_global(SM64Constants.SOUND_MENU_STAR_SOUND);
+            isGlobalInit = true;
         }
 
         public static void GlobalTerminate()
         {
             sm64_global_terminate();
-            MarioTexture = null;
-            IsGlobalInit = false;
+            marioTexture = null;
+            isGlobalInit = false;
         }
 
-        public static void StaticSurfacesLoad(SM64Surface[] surfaces)
+        public static Texture2D GenerateTexture(Color32[] customColors)
         {
-            sm64_static_surfaces_load(surfaces, (ulong)surfaces.Length);
+            Texture2D texture = new Texture2D(SM64_TEXTURE_WIDTH, SM64_TEXTURE_HEIGHT, TextureFormat.RGBA32, false);
+            Color32[] cols = defaultTexture.GetPixels32();
+
+            // Store Mario's default colors in the texture.
+            // If using a shader that doesn't support vertex colors,
+            // this is a viable workaround
+            for (int i = 0; i < customColors.Length; i++)
+            {
+                for (int ix = SM64_TEXTURE_WIDTH - 32 - 1; ix < SM64_TEXTURE_WIDTH; ix++)
+                {
+                    for (int iy = i * 10; iy < i * 10 + 10; iy++)
+                    {
+                        cols[ix + SM64_TEXTURE_WIDTH * iy] = customColors[i];
+                    }
+                }
+            }
+
+            // Replace transparency in certain parts of the texture
+            // with a solid color
+            for (int i = 0; i < removalAreas.Length; i++)
+            {
+                alphaRemovalArea r = removalAreas[i];
+                for (int ix = r.x; ix < r.x + r.w; ix++)
+                {
+                    for (int iy = r.y; iy < r.y + r.h; iy++)
+                    {
+                        if (cols[ix + SM64_TEXTURE_WIDTH * iy].a != 0) continue;
+                        cols[ix + SM64_TEXTURE_WIDTH * iy] = customColors[r.colorIndex];
+                    }
+                }
+            }
+
+            texture.SetPixels32(cols);
+            texture.Apply();
+
+            return texture;
         }
 
-        public static uint MarioCreate(Vector3 marioPos, Vector3 marioEulerAngles)
+        public static void StaticSurfacesLoad( SM64Surface[] surfaces )
         {
-            marioEulerAngles = new Vector3(marioEulerAngles.x, 360 - marioEulerAngles.y, marioEulerAngles.z) * SM64_DEG2ANGLE;
-            return sm64_mario_create((short)marioPos.x, (short)marioPos.y, (short)marioPos.z, (short)marioEulerAngles.x, (short)marioEulerAngles.y, (short)marioEulerAngles.z);
+            sm64_static_surfaces_load( surfaces, (ulong)surfaces.Length );
         }
 
-        public static SM64MarioState MarioTick(uint marioId, SM64MarioInputs inputs, Vector3[] positionBuffer, Vector3[] normalBuffer, Vector3[] colorBuffer, Vector2[] uvBuffer, out ushort numTrianglesUsed)
+        public static int MarioCreate( Vector3 marioPos )
         {
-            SM64MarioState outState = new();
+            return sm64_mario_create( (short)marioPos.x, (short)marioPos.y, (short)marioPos.z );
+        }
 
-            var posHandle = GCHandle.Alloc(positionBuffer, GCHandleType.Pinned);
-            var normHandle = GCHandle.Alloc(normalBuffer, GCHandleType.Pinned);
-            var colorHandle = GCHandle.Alloc(colorBuffer, GCHandleType.Pinned);
-            var uvHandle = GCHandle.Alloc(uvBuffer, GCHandleType.Pinned);
+        public static void MarioTick( int marioId, SM64MarioInputs inputs, ref SM64MarioState outState, Vector3[] positionBuffer, Vector3[] normalBuffer, Vector3[] colorBuffer, Vector2[] uvBuffer )
+        {
+            var posHandle = GCHandle.Alloc( positionBuffer, GCHandleType.Pinned );
+            var normHandle = GCHandle.Alloc( normalBuffer, GCHandleType.Pinned );
+            var colorHandle = GCHandle.Alloc( colorBuffer, GCHandleType.Pinned );
+            var uvHandle = GCHandle.Alloc( uvBuffer, GCHandleType.Pinned );
 
-            SM64MarioGeometryBuffers buff = new()
+            SM64MarioGeometryBuffers buff = new SM64MarioGeometryBuffers
             {
                 position = posHandle.AddrOfPinnedObject(),
                 normal = normHandle.AddrOfPinnedObject(),
                 color = colorHandle.AddrOfPinnedObject(),
-                uv = uvHandle.AddrOfPinnedObject(),
+                uv = uvHandle.AddrOfPinnedObject()
             };
 
-            sm64_mario_tick(marioId, ref inputs, ref outState, ref buff);
+            sm64_mario_tick( marioId, ref inputs, ref outState, ref buff );
 
-            numTrianglesUsed = buff.numTrianglesUsed;
+	    //uncomment to make Mario stay in 2D
+	    //sm64_set_mario_position(marioId, outState.position[0], outState.position[1], -1*SCALE_FACTOR);
 
             posHandle.Free();
             normHandle.Free();
             colorHandle.Free();
             uvHandle.Free();
-
-            return outState;
         }
 
-        public static void MarioDelete(uint marioId)
+        public static void MarioDelete( int marioId )
         {
-            sm64_mario_delete(marioId);
+            sm64_mario_delete( marioId );
         }
 
-        public static void MarioSetAction(uint marioId, SM64MarioAction action)
+        public static void MarioSetPosition(int marioId, Vector3 pos)
         {
-            sm64_set_mario_action(marioId, (uint)action);
+            sm64_set_mario_position(marioId, -pos.x * SCALE_FACTOR, pos.y * SCALE_FACTOR, pos.z * SCALE_FACTOR);
         }
 
-        public static void MarioSetState(uint marioId, SM64MarioFlags flags)
+        public static void MarioSetVelocity(int marioId, Vector3 vel)
         {
-            sm64_set_mario_state(marioId, (uint)flags);
+            sm64_set_mario_velocity(marioId, vel.x, vel.y, vel.z);
         }
 
-        public static void MarioSetPosition(uint marioId, Vector3 position)
+        public static void MarioSetForwardVelocity(int marioId, float vel)
         {
-            position *= SCALE_FACTOR;
-            sm64_set_mario_position(marioId, -position.x, position.y, position.z);
+            sm64_set_mario_forward_velocity(marioId, vel);
         }
 
-        public static void MarioSetRotation(uint marioId, Quaternion rotation)
+        public static void MarioTakeDamage(int marioId, uint damage, uint subtype, Vector3 pos)
         {
-            Vector3 eulerAngles = rotation.eulerAngles;
-            eulerAngles = new Vector3(eulerAngles.x, 360 - eulerAngles.y, eulerAngles.z);
-            eulerAngles *= SM64_DEG2ANGLE;
-            sm64_set_mario_angle(marioId, (short)eulerAngles.x, (short)eulerAngles.y, (short)eulerAngles.z);
+            sm64_mario_take_damage(marioId, damage, subtype, -pos.x * SCALE_FACTOR, pos.y * SCALE_FACTOR, pos.z * SCALE_FACTOR);
         }
 
-        public static void MarioSetRotation(uint marioId, float angle)
-        {
-            angle = 360 - angle;
-            angle *= SM64_DEG2ANGLE;
-            sm64_set_mario_faceangle(marioId, angle);
-        }
-
-        public static void MarioSetVelocity(uint marioId, Vector3 velocity)
-        {
-            velocity *= SCALE_FACTOR;
-            sm64_set_mario_velocity(marioId, velocity.x, velocity.y, velocity.z);
-        }
-
-        public static void MarioSetForwardVelocity(uint marioId, float velocity)
-        {
-            velocity *= SCALE_FACTOR;
-            sm64_set_mario_forward_velocity(marioId, velocity);
-        }
-
-        public static void MarioSetUpwardVelocity(uint marioId, float velocity)
-        {
-            velocity *= SCALE_FACTOR;
-            sm64_set_mario_upward_velocity(marioId, velocity);
-        }
-
-        public static void MarioSetInvincibility(uint marioId, short timer)
-        {
-            sm64_set_mario_invincibility(marioId, timer);
-        }
-
-        public static void MarioSetHealth(uint marioId, ushort health)
+        public static void MarioSetHealth(int marioId, ushort health)
         {
             sm64_set_mario_health(marioId, health);
         }
 
-        public static ushort MarioHealth(uint marioId)
+        public static void MarioKill(int marioId)
         {
-            return sm64_get_mario_health(marioId);
+            sm64_mario_kill(marioId);
         }
 
-        public static void MarioSetWaterLevel(uint marioId, int level)
+        public static void MarioSetAngle(int marioId, float x, float y, float z)
         {
-            // sm64_set_mario_water_level(marioId, level);
+            sm64_set_mario_angle(marioId, x, y, z);
         }
 
-        public static void MarioClaimCap(uint marioId, uint capFlag, ushort capTime)
+        public static void MarioSetFaceAngle(int marioId, float angle)
         {
-            sm64_mario_interact_cap(marioId, capFlag, capTime);
+            sm64_set_mario_faceangle(marioId, angle);
         }
 
-        public static uint SurfaceObjectCreate(Vector3 position, Quaternion rotation, SM64Surface[] surfaces)
+        public static void MarioSetAction(int marioId, SM64Constants.Action action)
         {
-            var surfListHandle = GCHandle.Alloc(surfaces, GCHandleType.Pinned);
-            var t = SM64ObjectTransform.FromUnityWorld(position, rotation);
+            sm64_set_mario_action(marioId, (uint)action);
+        }
 
-            SM64SurfaceObject surfObj = new()
+        public static void MarioSetAction(int marioId, SM64Constants.Action action, uint actionArg)
+        {
+            sm64_set_mario_action_arg(marioId, (uint)action, actionArg);
+        }
+
+        public static void MarioSetAnim(int marioId, SM64Constants.MarioAnimID animID)
+        {
+            sm64_set_mario_animation(marioId, (int)animID);
+        }
+
+        public static void MarioSetAnimFrame(int marioId, short animFrame)
+        {
+            sm64_set_mario_anim_frame(marioId, animFrame);
+        }
+
+        public static bool MarioAttack(int marioId, Vector3 pos, float hitboxHeight)
+        {
+            return sm64_mario_attack(marioId, -pos.x * SCALE_FACTOR, pos.y * SCALE_FACTOR, pos.z * SCALE_FACTOR, hitboxHeight);
+        }
+
+        public static void PlaySound(uint soundBits, Vector3 pos)
+        {
+            sm64_play_sound(soundBits, new float[] {pos.x, pos.y, pos.z});
+        }
+
+        public static void PlaySound(uint soundBits)
+        {
+            sm64_play_sound_global(soundBits);
+        }
+
+        public static uint SurfaceObjectCreate( Vector3 position, Quaternion rotation, SM64Surface[] surfaces )
+        {
+            var surfListHandle = GCHandle.Alloc( surfaces, GCHandleType.Pinned );
+            var t = SM64ObjectTransform.FromUnityWorld( position, rotation );
+
+            SM64SurfaceObject surfObj = new SM64SurfaceObject
             {
                 transform = t,
                 surfaceCount = (uint)surfaces.Length,
                 surfaces = surfListHandle.AddrOfPinnedObject()
             };
 
-            uint result = sm64_surface_object_create(ref surfObj);
+            uint result = sm64_surface_object_create( ref surfObj );
 
             surfListHandle.Free();
 
             return result;
         }
 
-        public static void SurfaceObjectMove(uint id, Vector3 position, Quaternion rotation)
+        public static void SurfaceObjectMove( uint id, Vector3 position, Quaternion rotation )
         {
-            var t = SM64ObjectTransform.FromUnityWorld(position, rotation);
-            sm64_surface_object_move(id, ref t);
+            var t = SM64ObjectTransform.FromUnityWorld( position, rotation );
+            sm64_surface_object_move( id, ref t );
         }
 
-        public static void SurfaceObjectDelete(uint id)
+        public static void SurfaceObjectDelete( uint id )
         {
-            sm64_surface_object_delete(id);
+            sm64_surface_object_delete( id );
         }
     }
 }

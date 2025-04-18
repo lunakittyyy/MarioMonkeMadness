@@ -144,7 +144,8 @@ namespace MarioMonkeMadness
             {
                 MarioHandler.SetMaterial();
                 RegisterMario(MarioHandler);
-                Interop.SetWaterLevel(MarioHandler.marioId, int.MaxValue);
+                Interop.SetWaterLevel(MarioHandler.marioId, -15000);
+                Interop.SetGasLevel(MarioHandler.marioId, -15000);
             }
             Zone = zone;
         }

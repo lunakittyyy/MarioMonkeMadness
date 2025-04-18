@@ -395,7 +395,11 @@ namespace LibSM64
             colorHandle.Free();
             uvHandle.Free();
         }
-
+        public static void SetGasLevel(int marioId, int gasLevel)
+        {
+            sm64_set_mario_gas_level(marioId, gasLevel);
+        }
+        
         public static void SetWaterLevel(int marioId, int waterLevel)
         {
             sm64_set_mario_water_level(marioId, waterLevel);

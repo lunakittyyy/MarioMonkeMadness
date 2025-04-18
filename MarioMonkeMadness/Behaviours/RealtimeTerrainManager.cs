@@ -13,7 +13,7 @@ namespace MarioMonkeMadness.Components
     public class RealtimeTerrainManager : MonoBehaviour
     {
         private SM64Mario Mario;
-        private bool Twirling;
+        private bool terrainNeedsReload;
 
         private readonly List<GTPlayer.MaterialData> MaterialCollection = Instance.materialData;
         private readonly float SlipThreshold = Instance.iceThreshold;
@@ -40,6 +40,15 @@ namespace MarioMonkeMadness.Components
             collider.excludeLayers = LayerMask.GetMask("GorillaTrigger", "IgnoreRaycast", "GorillaBoundary");
         }
 
+        private void LateUpdate()
+        {
+            if (terrainNeedsReload)
+            {
+                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
+                terrainNeedsReload = false;
+            }
+        }
+        
         private bool IsValidCollider(Collider collider)
         {
             return collider is MeshCollider && !collider.isTrigger && !collider.GetComponent<SM64StaticTerrain>();
@@ -79,40 +88,7 @@ namespace MarioMonkeMadness.Components
             if (IsValidCollider(other) && initializedColliders.Add(other))
             {
                 AddTerrainComponent(other);
-                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
-            }
-        }
-
-        public void OnTriggerStay(Collider other)
-        {
-            if (IsValidCollider(other) && initializedColliders.Add(other))
-            {
-                AddTerrainComponent(other);
-                Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
-                return;
-            }
-
-            if (other.GetComponent<SM64StaticTerrain>() &&
-                Physics.OverlapSphere(transform.position - Vector3.up * 0.2f, 0.12f,
-                    GetComponent<BoxCollider>().includeLayers, QueryTriggerInteraction.Ignore).Contains(other))
-            {
-                TryApplyTwirling(other);
-            }
-            else
-            {
-                Twirling = false;
-            }
-        }
-
-        private void TryApplyTwirling(Collider other)
-        {
-            if (Twirling) return;
-
-            if (other.TryGetComponent(out GorillaSurfaceOverride surface) && surface.extraVelMultiplier > 1)
-            {
-                Mario.SetVelocity(Vector3.up * surface.extraVelMultiplier / 5f);
-                Mario.SetAction(SM64Constants.Action.ACT_TWIRLING);
-                Twirling = true;
+                terrainNeedsReload = true;
             }
         }
 
@@ -123,7 +99,7 @@ namespace MarioMonkeMadness.Components
                 if (other.TryGetComponent<SM64StaticTerrain>(out var terrain))
                 {
                     Destroy(terrain);
-                    Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
+                    terrainNeedsReload = true;
                 }
             }
         }

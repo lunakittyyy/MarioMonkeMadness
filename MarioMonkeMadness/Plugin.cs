@@ -144,6 +144,7 @@ namespace MarioMonkeMadness
             Mario.AddComponent<RealtimeTerrainManager>();
             Mario.AddComponent<VRInputProvider>();
             Mario.AddComponent<MarioGrabHandler>();
+            Mario.AddComponent<MarioRescueHandler>();
             var MarioHandler = Mario.AddComponent<SM64Mario>();
             if (MarioHandler.spawned)
             {

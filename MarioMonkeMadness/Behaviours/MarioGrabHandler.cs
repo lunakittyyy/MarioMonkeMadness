@@ -17,7 +17,7 @@ namespace MarioMonkeMadness.Behaviours
             MyMario = GetComponent<SM64Mario>();
         }
         
-        public void Update()
+        public void LateUpdate()
         {
             if (Vector3.Distance(GTPlayer.Instance.rightControllerTransform.position, transform.position) >
                          Distance) return;

@@ -1,5 +1,4 @@
-﻿/*
-using GorillaExtensions;
+﻿using GorillaExtensions;
 using LibSM64;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +7,7 @@ namespace MarioMonkeMadness.Behaviours
 {
     public class MarioHealthBar : MonoBehaviour
     {
+        /*
         public MeshRenderer Renderer;
 
         private float Health, Fill, Hue;
@@ -46,6 +46,6 @@ namespace MarioMonkeMadness.Behaviours
             BarImage.color = Color.HSVToRGB(Hue, 0.75f, 1f);
             BarText.text = string.Concat(Mathf.FloorToInt(Health * 100 + 0.5f), "%");
         }
+        */
     }
 }
-*/

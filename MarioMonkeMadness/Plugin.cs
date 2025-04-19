@@ -139,21 +139,22 @@ namespace MarioMonkeMadness
 
         public void SpawnMario(Vector3 position, Vector3 direction, GTZone zone)
         {
-            var Mario = new GameObject("Mario");
-            Mario.transform.position = position;
-            Mario.transform.eulerAngles = direction;
-            Mario.AddComponent<RealtimeTerrainManager>();
-            Mario.AddComponent<VRInputProvider>();
-            Mario.AddComponent<MarioGrabHandler>();
-            Mario.AddComponent<MarioRescueHandler>();
-            var MarioHandler = Mario.AddComponent<SM64Mario>();
-            if (MarioHandler.spawned)
+            var mario = new GameObject("Mario");
+            mario.transform.position = position;
+            mario.transform.eulerAngles = direction;
+
+            mario.AddComponent<RealtimeTerrainManager>();
+            mario.AddComponent<VRInputProvider>();
+            mario.AddComponent<MarioGrabHandler>();
+            mario.AddComponent<MarioRescueHandler>();
+
+            var mario_handler = mario.AddComponent<SM64Mario>();
+            if (mario_handler.spawned)
             {
-                MarioHandler.SetMaterial();
-                RegisterMario(MarioHandler);
-                Interop.SetWaterLevel(MarioHandler.marioId, -50000);
-                Interop.SetGasLevel(MarioHandler.marioId, -50000);
+                RegisterMario(mario_handler);
+                mario.AddComponent<MarioSpawnHandler>();
             }
+
             Zone = zone;
         }
         
@@ -162,16 +163,18 @@ namespace MarioMonkeMadness
             foreach (var mario in _marios)
             {
                 UnregisterMario(mario);
+                mario.enabled = false;
+                Destroy(mario.gameObject);
             }
         }
 
-        public void RegisterMario(SM64Mario mario)
+        private void RegisterMario(SM64Mario mario)
         {
             if (!_marios.Contains(mario))
                 _marios.Add(mario);
         }
 
-        public void UnregisterMario(SM64Mario mario)
+        private void UnregisterMario(SM64Mario mario)
         {
             if (_marios.Contains(mario))
                 _marios.Remove(mario);

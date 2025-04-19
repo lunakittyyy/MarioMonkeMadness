@@ -35,7 +35,7 @@ namespace LibSM64
 
         public Interop.SM64MarioState marioState { get { return states[buffIndex]; } }
 
-        void OnEnable()
+        public void OnEnable()
         {
             var initPos = transform.position;
             marioId = Interop.MarioCreate( new Vector3( -initPos.x, initPos.y, initPos.z ) * Interop.SCALE_FACTOR );
@@ -79,7 +79,7 @@ namespace LibSM64
             tick = 0f;
         }
 
-        void OnDisable()
+        public void OnDisable()
         {
             if ( marioRendererObject != null )
             {

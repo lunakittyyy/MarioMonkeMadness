@@ -440,6 +440,16 @@ namespace LibSM64
             sm64_mario_kill(marioId);
         }
 
+        public static void MarioInteractCap(int marioId, uint capFlag, ushort capTime, bool playMusic)
+        {
+            sm64_mario_interact_cap(marioId, capFlag, capTime, Convert.ToByte(playMusic));
+        }
+
+        public static void MarioExtendCap(int marioId, ushort capTime)
+        {
+            sm64_mario_extend_cap(marioId, capTime);
+        }
+
         public static void MarioSetAngle(int marioId, float x, float y, float z)
         {
             sm64_set_mario_angle(marioId, x, y, z);

@@ -32,16 +32,17 @@ namespace MarioMonkeMadness.Behaviours
 
             if (gripButton && isGripping)
             {
+                //TODO: make mario rotate the same way as player or hand so throw works
                 MyMario.SetPosition(GTPlayer.Instance.rightControllerTransform.position += Vector3.down * 0.15f);
             }
 
             if (!gripButton && wasGrippingLastFrame)
             {
-                // TODO: This only thows Mario upwards and downwards for some reason. Look into this
                 var tracker = GTPlayer.Instance.rightHandCenterVelocityTracker;
                 var vel = tracker.GetLatestVelocity() * 50f;
                 MyMario.SetAction(SM64Constants.Action.ACT_THROWN_FORWARD);
-                MyMario.SetVelocity(-vel);
+                MyMario.SetVelocity(-vel); //For some reason this UP/Down only, need to set Both:
+                MyMario.SetForwardVelocity(-vel.z);
                 isGripping = false;
             }
             

@@ -13,6 +13,7 @@ using System.Linq;
 using BepInEx.Logging;
 using UnityEngine;
 using Logger = BepInEx.Logging.Logger;
+using System.Collections;
 
 namespace MarioMonkeMadness
 {
@@ -27,6 +28,7 @@ namespace MarioMonkeMadness
         private GTZone Zone;
         private float UpdateTick, FixedUpdateTick;
         public static ManualLogSource Log;
+        bool PlayedQuitSFX;
 
         public Plugin()
         {
@@ -37,6 +39,28 @@ namespace MarioMonkeMadness
 
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
             Log = base.Logger;
+            if (RefCache.Config.QuitSound.Value == true)
+            {
+                Application.wantsToQuit += StopQuitToSFX;
+            }
+        }
+
+        private bool StopQuitToSFX()
+        {
+            StartCoroutine(DelayQuit());
+            return PlayedQuitSFX;
+        }
+
+        private IEnumerator DelayQuit()
+        {
+            if (!PlayedQuitSFX)
+            {
+                Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
+                NetworkSystem.Instance.ReturnToSinglePlayer();
+                yield return new WaitForSecondsRealtime(3);
+                PlayedQuitSFX = true;
+                Application.Quit();
+            }
         }
 
         public async void OnGameInitialized()
@@ -120,7 +144,7 @@ namespace MarioMonkeMadness
             };
             pipe.SpawnOff += () =>
             {
-                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.4f);
+                Interop.PlaySound(SM64Constants.SOUND_MARIO_WAAAOOOW);
 
                 // Remove our current Mario 
                 RemoveMario();

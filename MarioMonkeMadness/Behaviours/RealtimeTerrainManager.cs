@@ -88,7 +88,7 @@ namespace MarioMonkeMadness.Components
             if (TryGetComponent<WaterVolume>(out var water))
             {
                 var collider = water.GetComponent<BoxCollider>();
-                Interop.SetWaterLevel(0, Mathf.RoundToInt(collider.bounds.max.y * Interop.SCALE_FACTOR));
+                Interop.SetWaterLevel(Mario.marioId, Mathf.RoundToInt(collider.bounds.max.y * Interop.SCALE_FACTOR));
             }
             if (IsValidCollider(other) && initializedColliders.Add(other))
             {

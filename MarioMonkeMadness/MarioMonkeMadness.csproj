@@ -5,9 +5,11 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="Resources\mariobundle" />
+	  <None Remove="sm64.dll" />
 	</ItemGroup>
 	<ItemGroup>
 	  <EmbeddedResource Include="Resources\mariobundle" />
+	  <EmbeddedResource Include="sm64.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

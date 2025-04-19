@@ -26,7 +26,7 @@ namespace MarioMonkeMadness
         private GameObject Mario;
         private GTZone Zone;
         private float UpdateTick, FixedUpdateTick;
-        public static new ManualLogSource Log;
+        public static ManualLogSource Log;
 
         public Plugin()
         {
@@ -45,7 +45,8 @@ namespace MarioMonkeMadness
             RefCache.IsSteam = Traverse.Create(PlayFabAuthenticator.instance).Field("platform").GetValue().ToString().ToLower() == "steam";
 
             // Cache a tuple (ROM state, ROM path) based on any ROM file which can be found in the current directory
-            string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.z64");
+            string[] files = Directory.GetFiles(Path.GetDirectoryName(GetType().Assembly.Location), "*.z64");
+            Logger.LogInfo(string.Join(", ", files));
             RefCache.RomData = files.Any() ? Tuple.Create(true, files.First()) : Tuple.Create(false, string.Empty);
             
             Interop.GlobalInit(File.ReadAllBytes(files.First()));

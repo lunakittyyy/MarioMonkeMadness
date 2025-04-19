@@ -32,7 +32,7 @@ namespace MarioMonkeMadness.Behaviours
 
             if (gripButton && isGripping)
             {
-                MyMario.SetPosition(GTPlayer.Instance.rightControllerTransform.position);
+                MyMario.SetPosition(GTPlayer.Instance.rightControllerTransform.position += Vector3.down * 0.15f);
             }
 
             if (!gripButton && wasGrippingLastFrame)

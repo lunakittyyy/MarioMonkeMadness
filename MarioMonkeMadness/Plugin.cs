@@ -10,7 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BepInEx.Logging;
 using UnityEngine;
+using Logger = BepInEx.Logging.Logger;
 
 namespace MarioMonkeMadness
 {
@@ -19,11 +21,12 @@ namespace MarioMonkeMadness
     {
         public static Plugin Instance;
         public AssetLoader asl;
-        static List<SM64Mario> _marios = new List<SM64Mario>();
+        public static List<SM64Mario> _marios = new List<SM64Mario>();
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
         private GameObject Mario;
         private GTZone Zone;
         private float UpdateTick, FixedUpdateTick;
+        public static new ManualLogSource Log;
 
         public Plugin()
         {
@@ -33,6 +36,7 @@ namespace MarioMonkeMadness
             new Harmony(Constants.Guid).PatchAll(typeof(Plugin).Assembly);
 
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
+            Log = base.Logger;
         }
 
         public async void OnGameInitialized()
@@ -139,6 +143,7 @@ namespace MarioMonkeMadness
             Mario.transform.eulerAngles = direction;
             Mario.AddComponent<RealtimeTerrainManager>();
             Mario.AddComponent<VRInputProvider>();
+            Mario.AddComponent<MarioGrabHandler>();
             var MarioHandler = Mario.AddComponent<SM64Mario>();
             if (MarioHandler.spawned)
             {

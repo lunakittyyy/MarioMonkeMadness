@@ -20,6 +20,8 @@ namespace MarioMonkeMadness.Components
 
         private readonly HashSet<Collider> initializedColliders = new();
 
+        private int staticSurfaceFrameTime = 0;
+
         public IEnumerator Start()
         {
             Transform transform = gameObject.transform; // prevent internal call implementation
@@ -42,10 +44,12 @@ namespace MarioMonkeMadness.Components
 
         private void LateUpdate()
         {
-            if (terrainNeedsReload)
+            staticSurfaceFrameTime++;
+            if (terrainNeedsReload && staticSurfaceFrameTime % 10 == 0)
             {
                 Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
                 terrainNeedsReload = false;
+                staticSurfaceFrameTime = 0;
             }
         }
         

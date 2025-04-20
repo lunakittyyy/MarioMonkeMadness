@@ -244,8 +244,11 @@ namespace MarioMonkeMadness
             {
                 RegisterMario(mario_handler);
                 mario.AddComponent<MarioSpawnHandler>();
+#if DEBUG
+                mario.AddComponent<MarioDebugWindow>().MyMario = mario_handler;
+#endif
             }
-
+            
             Zone = zone;
         }
         

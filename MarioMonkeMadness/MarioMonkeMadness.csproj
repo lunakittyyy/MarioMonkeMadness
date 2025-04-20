@@ -32,6 +32,9 @@
 		<Reference Include="SteamVR">
 			<HintPath>$(GameAssemblyPath)\SteamVR.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.IMGUIModule">
+			<HintPath>$(GameAssemblyPath)\UnityEngine.IMGUIModule.dll</HintPath>
+		</Reference>
 		<Reference Include="SteamVR_Actions">
 			<HintPath>$(GameAssemblyPath)\SteamVR_Actions.dll</HintPath>
 		</Reference>

@@ -72,6 +72,9 @@ namespace MarioMonkeMadness.Components
                 "pitground" => SM64TerrainType.Grass,
                 "pitgroundwinter" => SM64TerrainType.Snow,
                 "BeachSand" => SM64TerrainType.Sand,
+                "default" => SM64TerrainType.Stone,
+                "loglowres" => SM64TerrainType.Spooky,
+                "MetroConcrete" => SM64TerrainType.Stone,
                 _ => SM64TerrainType.Grass,
             };
         }

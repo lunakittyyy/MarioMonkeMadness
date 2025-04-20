@@ -39,7 +39,7 @@ namespace MarioMonkeMadness.Components
             BoxCollider collider = gameObject.AddComponent<BoxCollider>();
             collider.isTrigger = true;
             collider.includeLayers = LayerMask.GetMask("GorillaObject", "Gorilla Object", "MirrorOnly", "NoMirror", "Default", "Water");
-            collider.excludeLayers = LayerMask.GetMask("GorillaTrigger", "IgnoreRaycast", "GorillaBoundary");
+            collider.excludeLayers = LayerMask.GetMask("GorillaTrigger", "Gorilla Trigger", "IgnoreRaycast", "GorillaBoundary");
         }
 
         private void LateUpdate()

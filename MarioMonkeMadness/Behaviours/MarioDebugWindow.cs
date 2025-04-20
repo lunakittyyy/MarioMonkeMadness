@@ -7,6 +7,7 @@ namespace MarioMonkeMadness.Behaviours
     public class MarioDebugWindow : MonoBehaviour
     {
         public SM64Mario MyMario;
+        internal MarioWaterDetector MyMarioWaterDetector;
         public Rect MarioDebugGUI = new Rect(20, 100, 300, 500);
         void OnGUI()
         {
@@ -32,7 +33,10 @@ namespace MarioMonkeMadness.Behaviours
                     $"Ac. Time: {s.actionTimer}\n" +
                     $"Anim ID: {s.animID:X}\n" +
                     $"Anim. frame: {s.animFrame}\n" +
-                    $"Anim. timer: {s.animTimer}\n");
+                    $"Anim. timer: {s.animTimer}\n" +
+                    $"========== Water ==========\n" +
+                    $"Water volumes: {MyMarioWaterDetector.waterVolumes.Count}\n" +
+                    $"Water level: {MyMarioWaterDetector.waterLevel}\n");
             GUI.DragWindow(new Rect(0, 0, 10000, 10000));
         }
     }

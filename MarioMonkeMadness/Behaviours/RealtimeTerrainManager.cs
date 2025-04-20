@@ -92,11 +92,6 @@ namespace MarioMonkeMadness.Components
 
         public void OnTriggerEnter(Collider other)
         {
-            if (TryGetComponent<WaterVolume>(out var water))
-            {
-                var collider = water.GetComponent<BoxCollider>();
-                Interop.SetWaterLevel(Mario.marioId, Mathf.RoundToInt(collider.bounds.max.y * Interop.SCALE_FACTOR));
-            }
             if (IsValidCollider(other) && initializedColliders.Add(other))
             {
                 AddTerrainComponent(other);

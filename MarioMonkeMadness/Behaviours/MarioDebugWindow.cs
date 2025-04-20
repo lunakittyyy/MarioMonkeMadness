@@ -1,5 +1,6 @@
 #if DEBUG
 using LibSM64;
+using MarioMonkeMadness.Components;
 using UnityEngine;
 
 namespace MarioMonkeMadness.Behaviours
@@ -8,6 +9,7 @@ namespace MarioMonkeMadness.Behaviours
     {
         public SM64Mario MyMario;
         internal MarioWaterDetector MyMarioWaterDetector;
+        internal RealtimeTerrainManager MyRealtime; 
         public Rect MarioDebugGUI = new Rect(20, 100, 300, 500);
         void OnGUI()
         {
@@ -36,7 +38,10 @@ namespace MarioMonkeMadness.Behaviours
                     $"Anim. timer: {s.animTimer}\n" +
                     $"========== Water ==========\n" +
                     $"Water volumes: {MyMarioWaterDetector.waterVolumes.Count}\n" +
-                    $"Water level: {MyMarioWaterDetector.waterLevel}\n");
+                    $"Water level: {MyMarioWaterDetector.waterLevel}\n" +
+                    $"========== Terrain ==========\n" +
+                    $"Terrain count: {MyRealtime.terrainList.Count}\n" +
+                    $"Terrain ");
             GUI.DragWindow(new Rect(0, 0, 10000, 10000));
         }
     }

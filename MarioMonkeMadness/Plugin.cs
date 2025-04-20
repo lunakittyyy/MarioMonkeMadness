@@ -205,7 +205,7 @@ namespace MarioMonkeMadness
             mario.transform.position = position;
             mario.transform.eulerAngles = direction;
 
-            mario.AddComponent<RealtimeTerrainManager>();
+            var terr = mario.AddComponent<RealtimeTerrainManager>();
             if (XRSettings.isDeviceActive)
             {
                 mario.AddComponent<VRInputProvider>();
@@ -252,6 +252,7 @@ namespace MarioMonkeMadness
                 var dbg = mario.AddComponent<MarioDebugWindow>();
                 dbg.MyMario = mario_handler;
                 dbg.MyMarioWaterDetector = marioWaterDetector;
+                dbg.MyRealtime = terr;
 #endif
             }
             

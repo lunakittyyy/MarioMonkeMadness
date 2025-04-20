@@ -16,6 +16,12 @@ namespace MarioMonkeMadness.Components
         private bool terrainNeedsReload;
 
         private readonly List<GTPlayer.MaterialData> MaterialCollection = Instance.materialData;
+        // Only used for terrain count in the MarioDebugWindow.
+        // The RealtimeTerrainManager is *very* taxing, so we want to save as many CPU cycles as we can
+        // and not bother doing things we dont need
+#if DEBUG
+        public List<SM64StaticTerrain> terrainList = new List<SM64StaticTerrain>();
+#endif
         private readonly float SlipThreshold = Instance.iceThreshold;
 
         private readonly HashSet<Collider> initializedColliders = new();
@@ -45,7 +51,7 @@ namespace MarioMonkeMadness.Components
         private void LateUpdate()
         {
             staticSurfaceFrameTime++;
-            if (terrainNeedsReload && staticSurfaceFrameTime % 10 == 0)
+            if (terrainNeedsReload && staticSurfaceFrameTime % 5 == 0)
             {
                 Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
                 terrainNeedsReload = false;
@@ -61,7 +67,9 @@ namespace MarioMonkeMadness.Components
         private void AddTerrainComponent(Collider collider)
         {
             var terrain = collider.gameObject.AddComponent<SM64StaticTerrain>();
-
+#if DEBUG
+            terrainList.Add(terrain);
+#endif
             if (collider.TryGetComponent(out GorillaSurfaceOverride surface))
             {
                 terrain.TerrainType = TerrainType(surface);
@@ -105,6 +113,9 @@ namespace MarioMonkeMadness.Components
             {
                 if (other.TryGetComponent<SM64StaticTerrain>(out var terrain))
                 {
+#if DEBUG
+                    terrainList.Remove(terrain);
+#endif
                     Destroy(terrain);
                     terrainNeedsReload = true;
                 }

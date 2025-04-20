@@ -235,6 +235,11 @@ namespace MarioMonkeMadness
                 GTPlayer.Instance.InReportMenu = true;
                 GorillaTagger.Instance.rigidbody.isKinematic = true;
 
+                var Col = Instantiate(GTPlayer.Instance.bodyCollider, mario.transform, worldPositionStays: false);
+                Col.transform.localPosition = Vector3.zero;
+                Col.AddComponent<MarioWaterDetector>();
+                Col.isTrigger = true;
+
             }
             mario.AddComponent<MarioGrabHandler>();
             mario.AddComponent<MarioRescueHandler>();

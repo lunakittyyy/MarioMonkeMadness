@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using LibSM64;
-using MarioMonkeMadness.Components;
+﻿using LibSM64;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Windows;
 
 namespace MarioMonkeMadness.Behaviours
 {
@@ -31,9 +26,6 @@ namespace MarioMonkeMadness.Behaviours
         public float sensitivityX = 15F;
         public float sensitivityY = 15F;
 
-        public float minimumX = -360F;
-        public float maximumX = 360F;
-
         public float minimumY = -80F;
         public float maximumY = 80F;
 
@@ -41,21 +33,9 @@ namespace MarioMonkeMadness.Behaviours
 
         private float rotationY;
 
-        public float Speed = 1f;
-
-        public float Omega = 1f;
-
-        public Vector3 m_velocity;
-
-        float num;
-        public Vector3 Velocity => m_velocity;
-
-
         private float GetMouseX() => Mouse.current.delta.ReadValue().x / 400;
 
         private float GetMouseY() => Mouse.current.delta.ReadValue().y / 400;
-
-
 
         void OnDestroy()
         {
@@ -109,7 +89,7 @@ namespace MarioMonkeMadness.Behaviours
 
             if (!WASD)
             {
-                if (inputProvider == null)
+                if (!inputProvider)
                 {
                     inputProvider = FindObjectOfType<ControllerInputProvider>();
                 }
@@ -131,7 +111,7 @@ namespace MarioMonkeMadness.Behaviours
             }
             else
             {
-                if (inputProvider == null)
+                if (!inputProvider)
                 {
                     inputProvider = FindObjectOfType<WASDInputProvider>();
                     Cursor.lockState = CursorLockMode.Locked;

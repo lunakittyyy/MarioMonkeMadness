@@ -8,8 +8,8 @@ namespace MarioMonkeMadness.Behaviours
     public class MarioGrabHandler : MonoBehaviour
     {
         const float Distance = 1f;
-        bool isGripping = false;
-        bool wasGrippingLastFrame = false;
+        bool isGripping;
+        bool wasGrippingLastFrame;
         SM64Mario MyMario;
 
         public void Start()

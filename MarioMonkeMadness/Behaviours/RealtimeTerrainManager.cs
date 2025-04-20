@@ -114,7 +114,7 @@ namespace MarioMonkeMadness.Components
 
         public void OnDestroy()
         {
-            RefCache.TerrainList.Do(terrain => Destroy(terrain));
+            RefCache.TerrainList.Do(Destroy);
             RefCache.TerrainList.Clear();
             RefCache.TerrainUpdated = true;
         }

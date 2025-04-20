@@ -9,9 +9,10 @@ namespace MarioMonkeMadness.Behaviours
     {
         float ws;
         float ad;
+        Camera thirdCam => GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>();
         public override Vector3 GetCameraLookDirection()
         {
-            return GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>().transform.forward;
+            return thirdCam.transform.forward;
         }
 
         public override Vector2 GetJoystickAxes()

@@ -10,7 +10,6 @@ namespace MarioMonkeMadness.Behaviours
     public class MarioRescueHandler : MonoBehaviour
     {
         private bool leftStickClick;
-        private bool IsSteamVR;
         private SM64Mario MyMario;
         Transform mainCamera;
         bool clickedLastFrame;

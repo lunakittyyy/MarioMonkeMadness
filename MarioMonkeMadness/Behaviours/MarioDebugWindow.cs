@@ -1,3 +1,4 @@
+#if DEBUG
 using LibSM64;
 using UnityEngine;
 
@@ -36,3 +37,4 @@ namespace MarioMonkeMadness.Behaviours
         }
     }
 }
+#endif

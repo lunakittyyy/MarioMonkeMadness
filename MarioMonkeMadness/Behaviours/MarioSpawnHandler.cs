@@ -35,7 +35,7 @@ namespace MarioMonkeMadness.Behaviours
             // Update scaling of objects
             transform.localScale = new Vector3(Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f), MarioMonkeMadness.Constants.TriggerLength, Mathf.Pow(MarioMonkeMadness.Constants.TriggerLength, 0.28f));
             healthBar.transform.localScale = new Vector3(1f / transform.localScale.x, 1f / transform.localScale.y, 1f / transform.localScale.z) / 1.9f;
-
+            */
             for (int i = 0; i < 4; i++)
             {
                 Interop.MarioSetForwardVelocity(marioId, i * 0.021f);
@@ -44,7 +44,7 @@ namespace MarioMonkeMadness.Behaviours
 
                 yield return new WaitForSeconds(0.04f);
             }
-            */
+
 
             yield return new WaitForSeconds(1.2f);
 

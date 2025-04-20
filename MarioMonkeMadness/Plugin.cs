@@ -129,9 +129,6 @@ namespace MarioMonkeMadness
 
             pipe.SpawnOn += () =>
             {
-                //AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
-                Interop.PlaySound(SM64Constants.SOUND_MENU_STAR_SOUND_LETS_A_GO);
-                Interop.PlaySound(SM64Constants.SOUND_MENU_EXIT_PIPE);
                 Collider[] colliders = Physics.OverlapSphere(position, 1);
                 foreach (var collider in colliders)
                 {

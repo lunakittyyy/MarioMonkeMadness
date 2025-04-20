@@ -14,7 +14,9 @@ namespace LibSM64
 
         public const int SM64_MAX_HEALTH = 8;
 
-        public static Color32[] defaultColors = {
+
+        //These are too intense so remove all shading
+         public static Color32[] defaultColors = {
 	        new Color32(0  , 0  , 255, 255), // Overalls
 	        new Color32(255, 0  , 0  , 255), // Shirt/Hat
                 new Color32(254, 193, 121, 255), // Skin

@@ -86,6 +86,11 @@ namespace MarioMonkeMadness
             if (!PlayedQuitSFX)
             {
                 Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
+                if (_marios[0])
+                {
+                    _marios[0].SetAction(SM64Constants.Action.ACT_CREDITS_CUTSCENE);
+                    _marios[0].SetAnim(SM64Constants.MarioAnimID.MARIO_ANIM_CREDITS_WAVING);
+                }
                 NetworkSystem.Instance.ReturnToSinglePlayer();
                 yield return new WaitForSecondsRealtime(3);
                 PlayedQuitSFX = true;

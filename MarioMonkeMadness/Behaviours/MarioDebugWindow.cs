@@ -10,7 +10,7 @@ namespace MarioMonkeMadness.Behaviours
         public SM64Mario MyMario;
         internal MarioWaterDetector MyMarioWaterDetector;
         internal RealtimeTerrainManager MyRealtime; 
-        public Rect MarioDebugGUI = new Rect(20, 100, 300, 500);
+        public Rect MarioDebugGUI = new Rect(20, 100, 1000, 1000);
         void OnGUI()
         {
             MarioDebugGUI = GUI.Window(MyMario.marioId, MarioDebugGUI, DoDebugWindow, $"Mario {MyMario.marioId} Debug");
@@ -19,29 +19,35 @@ namespace MarioMonkeMadness.Behaviours
         void DoDebugWindow(int windowID)
         {
             var s = MyMario.marioState;
-            GUI.Label(new Rect(0, 15, 10000, 10000), 
+            var nuclearString =
                 $"========== Mario pos/rot/ang =========\n" +
-                    $"SM64 pos: {s.position[0]}, {s.position[1]}, {s.position[2]}\n" +
-                    $"Unity pos: {s.unityPosition[0]}, {s.unityPosition[1]}, {s.unityPosition[2]}\n" +
-                    $"Vel: {s.velocity[0]}, {s.velocity[1]}, {s.velocity[2]}\n" +
-                    $"Forward vel: {s.forwardVel}\n" +
-                    $"Face angle: {s.faceAngle}\n" +
-                    $"Twirl yaw: {s.twirlYaw}\n" +
-                    $"========== Mario state =========\n" +
-                    $"Health: {s.health}\n" +
-                    $"Action: {s.action:X}\n" +
-                    $"Ac. Arg: {s.actionArg}\n" +
-                    $"Ac. State: {s.actionState}\n" +
-                    $"Ac. Time: {s.actionTimer}\n" +
-                    $"Anim ID: {s.animID:X}\n" +
-                    $"Anim. frame: {s.animFrame}\n" +
-                    $"Anim. timer: {s.animTimer}\n" +
-                    $"========== Water ==========\n" +
-                    $"Water volumes: {MyMarioWaterDetector.waterVolumes.Count}\n" +
-                    $"Water level: {MyMarioWaterDetector.waterLevel}\n" +
-                    $"========== Terrain ==========\n" +
-                    $"Terrain count: {MyRealtime.terrainList.Count}\n" +
-                    $"Terrain ");
+                $"SM64 pos: {s.position[0]}, {s.position[1]}, {s.position[2]}\n" +
+                $"Unity pos: {s.unityPosition[0]}, {s.unityPosition[1]}, {s.unityPosition[2]}\n" +
+                $"Vel: {s.velocity[0]}, {s.velocity[1]}, {s.velocity[2]}\n" +
+                $"Forward vel: {s.forwardVel}\n" +
+                $"Face angle: {s.faceAngle}\n" +
+                $"Twirl yaw: {s.twirlYaw}\n" +
+                $"========== Mario state =========\n" +
+                $"Health: {s.health}\n" +
+                $"Action: {s.action:X}\n" +
+                $"Ac. Arg: {s.actionArg}\n" +
+                $"Ac. State: {s.actionState}\n" +
+                $"Ac. Time: {s.actionTimer}\n" +
+                $"Anim ID: {s.animID:X}\n" +
+                $"Anim. frame: {s.animFrame}\n" +
+                $"Anim. timer: {s.animTimer}\n" +
+                $"========== Water ==========\n" +
+                $"Water volumes: {MyMarioWaterDetector.waterVolumes.Count}\n" +
+                $"Water level: {MyMarioWaterDetector.waterLevel}\n" +
+                $"========== Terrain ==========\n" +
+                $"Terrain count: {MyRealtime.terrainList.Count}\n" +
+                $"Terrain update timer: {MyRealtime.staticSurfaceFrameTime}\n" +
+                $"Terrain objects:\n";
+            foreach (var hit in MyRealtime.terrainList)
+            {
+                nuclearString += hit.name + (hit.wasAddedByRaycast ? " (RAYCASTED)" : "") + "\n";
+            }
+            GUI.Label(new Rect(15, 15, 10000, 10000), nuclearString);
             GUI.DragWindow(new Rect(0, 0, 10000, 10000));
         }
     }

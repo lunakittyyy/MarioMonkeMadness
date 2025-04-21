@@ -38,7 +38,7 @@ namespace MarioMonkeMadness.Components
         public IEnumerator Start()
         {
             Transform transform = gameObject.transform; // prevent internal call implementation
-            transform.localScale = new Vector3(3, 3, 3);
+            transform.localScale = new Vector3(1, 1, 1);
 
             Mario = GetComponent<SM64Mario>();
             yield return new WaitForSeconds(0.25f - Mathf.Pow(Time.deltaTime, 2f));
@@ -88,7 +88,7 @@ namespace MarioMonkeMadness.Components
                 {
     #if DEBUG
                     DebugUtil.DrawLine(raycastCommands[i].from, hit.point, Color.red);
-                    DebugUtil.DrawBox(coll.bounds.center, Quaternion.identity, new Vector3(3, 3, 3), Color.red);
+                    DebugUtil.DrawBox(coll.bounds.center, Quaternion.identity, new Vector3(1, 1, 1), Color.red);
     #endif
                     currentHits.Add(hit.collider.gameObject);
 

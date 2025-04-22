@@ -3,6 +3,7 @@ using UnityEngine;
 using LibSM64;
 using System;
 using MarioMonkeMadness;
+using MarioMonkeMadness.Tools;
 
 
 namespace LibSM64
@@ -42,6 +43,8 @@ namespace LibSM64
 
             if (marioId == -1)
             {
+                Destroy(gameObject);
+                Plugin.RemoveMario();
                 throw new System.Exception($"Failed to spawn Mario at {-initPos.x},{initPos.y},{initPos.z}");
             }
 
@@ -78,18 +81,17 @@ namespace LibSM64
 
             tick = 0f;
         }
-
-        public void OnDisable()
+        public void OnDestroy()
         {
-            if ( marioRendererObject != null )
+            if (marioRendererObject != null)
             {
-                Destroy( marioRendererObject );
+                Destroy(marioRendererObject);
                 marioRendererObject = null;
             }
 
-            if( Interop.isGlobalInit )
+            if (Interop.isGlobalInit)
             {
-                Interop.MarioDelete( marioId );
+                Interop.MarioDelete(marioId);
             }
         }
 
@@ -99,6 +101,18 @@ namespace LibSM64
             var surfaceMaterial = new Material(RefCache.AssetLoader.GetAsset<Shader>("Shader Graphs/MarioSurfaceShader"));
             surfaceMaterial.SetTexture("_MainTex", Interop.marioTexture);
             renderer.materials = new Material[] { vertexMaterial, surfaceMaterial };
+            if (RefCache.Config.CustomColour.Value == true)
+            {
+                SetColors(new Color32[]
+                {
+                    new Color32(0  , 0  , 255, 255), // Overalls
+	                VRRig.LocalRig.playerColor, // Shirt/Hat
+                    new Color32(254, 193, 121, 255), // Skin
+	                new Color32(115, 6  , 0  , 255), // Hair
+	                new Color32(255, 255, 255, 255), // Gloves
+	                new Color32(114, 28 , 14 , 255), // Shoes
+                });
+            }
         }
 
         public void SetColors(Color32[] colors)
@@ -106,7 +120,7 @@ namespace LibSM64
             if (colors.Length != 6)
                 return;
 
-            renderer.sharedMaterial.mainTexture = Interop.GenerateTexture(colors);
+            renderer.materials[1].SetTexture("_MainTex", Interop.GenerateTexture(colors));
         }
 
         public void SetPosition(Vector3 position)

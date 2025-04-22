@@ -6,5 +6,6 @@ namespace LibSM64
     {
         [SerializeField] public SM64TerrainType TerrainType = SM64TerrainType.Grass;
         [SerializeField] public SM64SurfaceType SurfaceType = SM64SurfaceType.Default;
+        public bool wasAddedByRaycast = false;
     }
 }

@@ -13,6 +13,10 @@ using System.Linq;
 using BepInEx.Logging;
 using UnityEngine;
 using Logger = BepInEx.Logging.Logger;
+using System.Collections;
+using UnityEngine.XR;
+using UnityEngine.InputSystem;
+using GorillaLocomotion;
 
 namespace MarioMonkeMadness
 {
@@ -24,10 +28,10 @@ namespace MarioMonkeMadness
         public static List<SM64Mario> _marios = new List<SM64Mario>();
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
         private GameObject Mario;
+        public static GameObject CameraFollow;
         private GTZone Zone;
-        private float UpdateTick, FixedUpdateTick;
         public static ManualLogSource Log;
-
+        bool PlayedQuitSFX;
         public Plugin()
         {
             Instance = this;
@@ -37,6 +41,62 @@ namespace MarioMonkeMadness
 
             GorillaTagger.OnPlayerSpawned(OnGameInitialized);
             Log = base.Logger;
+            if (RefCache.Config.QuitSound.Value == true)
+            {
+                Application.wantsToQuit += StopQuitToSFX;
+            }
+        }
+
+        private bool StopQuitToSFX()
+        {
+            StartCoroutine(DelayQuit());
+            return PlayedQuitSFX;
+        }
+
+        void DesktopToggleMario()
+        {
+            if (!XRSettings.isDeviceActive)
+            {
+                if (_marios.Count > 0) 
+                {
+                    GTPlayer.Instance.enabled = true;
+                    GTPlayer.Instance.disableMovement = false;
+                    GTPlayer.Instance.inOverlay = false;
+                    GTPlayer.Instance.InReportMenu = false;
+                    GorillaTagger.Instance.rigidbody.isKinematic = false;
+                    GTPlayer.Instance.TeleportTo(_marios[0].transform.position + Vector3.up * 1, _marios[0].transform.rotation);
+                    RemoveMario();
+                }
+                else
+                {
+                    Vector3 vec = Camera.main.transform.position + Vector3.up * 0.32f;
+                    Collider[] colliders = Physics.OverlapSphere(vec, 1);
+                    foreach (var collider in colliders)
+                    {
+                        if (collider is not MeshCollider) continue;
+                        Destroy(collider.gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
+                    }
+                    Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
+                    SpawnMario(vec, Camera.main.transform.localRotation.eulerAngles, GTZone.forest);
+                }
+            }
+        }
+
+        private IEnumerator DelayQuit()
+        {
+            if (!PlayedQuitSFX)
+            {
+                Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
+                if (_marios.Count >= 1)
+                {
+                    _marios[0].SetAction(SM64Constants.Action.ACT_CREDITS_CUTSCENE);
+                    _marios[0].SetAnim(SM64Constants.MarioAnimID.MARIO_ANIM_CREDITS_WAVING);
+                }
+                NetworkSystem.Instance.ReturnToSinglePlayer();
+                yield return new WaitForSecondsRealtime(3);
+                PlayedQuitSFX = true;
+                Application.Quit();
+            }
         }
 
         public async void OnGameInitialized()
@@ -60,6 +120,8 @@ namespace MarioMonkeMadness
             SpawnPipe(new Vector3(-27.6513f, 13.9975f, -107.9862f), 217f, Tuple.Create(GTZone.city, 1, "CosmeticsRoomAnchor/cosmetics room new/cosmeticsroomatlas (combined by EdMeshCombinerSceneProcessor)"));
             SpawnPipe(new Vector3(-7.1295f, 11.9978f, 19.9363f), 90.8f, Tuple.Create(GTZone.beach, 0, "Beach_Main_Geo/B_Fort_5_5_FBX/B_FORT_5_FLOOR"));
             SpawnPipe(new Vector3(125.0817f, -104.3998f, 77.5353f), 180f, Tuple.Create(GTZone.critters, 0, "Critters/Critters_Environment/Landscape/Critters_Landscape/Critters_LandscapeByMaterial002"));
+
+            CameraFollow = FindObjectOfType<GorillaCameraFollow>().gameObject;
         }
 
         public void Update()
@@ -77,6 +139,15 @@ namespace MarioMonkeMadness
 
             foreach (var o in _marios)
                 o.contextUpdate();
+
+            if (Keyboard.current.mKey.wasPressedThisFrame)
+            {
+                DesktopToggleMario();
+            }
+            if (Gamepad.current != null && Gamepad.current.yButton.wasPressedThisFrame)
+            {
+                DesktopToggleMario();
+            }
         }
 
         public void FixedUpdate()
@@ -105,9 +176,6 @@ namespace MarioMonkeMadness
 
             pipe.SpawnOn += () =>
             {
-                //AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Spawn"), position, 0.6f);
-                Interop.PlaySound(SM64Constants.SOUND_MENU_STAR_SOUND_LETS_A_GO);
-                Interop.PlaySound(SM64Constants.SOUND_MENU_EXIT_PIPE);
                 Collider[] colliders = Physics.OverlapSphere(position, 1);
                 foreach (var collider in colliders)
                 {
@@ -120,7 +188,7 @@ namespace MarioMonkeMadness
             };
             pipe.SpawnOff += () =>
             {
-                AudioSource.PlayClipAtPoint(RefCache.AssetLoader.GetAsset<AudioClip>("Despawn"), Mario.transform.position, 0.4f);
+                Interop.PlaySound(SM64Constants.SOUND_MARIO_WAAAOOOW);
 
                 // Remove our current Mario 
                 RemoveMario();
@@ -143,27 +211,74 @@ namespace MarioMonkeMadness
             mario.transform.position = position;
             mario.transform.eulerAngles = direction;
 
-            mario.AddComponent<RealtimeTerrainManager>();
-            mario.AddComponent<VRInputProvider>();
+            var terr = mario.AddComponent<RealtimeTerrainManager>();
+            if (XRSettings.isDeviceActive)
+            {
+                mario.AddComponent<VRInputProvider>();
+            }
+            else
+            {
+                var camsys = CameraFollow.AddComponent<MarioCamFollower>();
+                if (Gamepad.current != null)
+                {
+                    mario.AddComponent<ControllerInputProvider>();
+                }
+                else
+                {
+                    mario.AddComponent<WASDInputProvider>();
+                    camsys.WASD = true;
+                }
+                CameraFollow.transform.SetParent(null);
+                Camera.main.GetComponent<AudioListener>().enabled = false;
+                GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>().AddComponent<AudioListener>();
+                camsys.transformToFollow = mario.transform;
+                CameraFollow.transform.localPosition = mario.transform.position + Vector3.up * 2;
+                CameraFollow.transform.localRotation = Quaternion.Euler(Vector3.zero);
+
+                GTPlayer.Instance.enabled = false;
+                GTPlayer.Instance.disableMovement = true;
+                GTPlayer.Instance.inOverlay = true;
+                GTPlayer.Instance.InReportMenu = true;
+                GorillaTagger.Instance.rigidbody.isKinematic = true;
+            }
             mario.AddComponent<MarioGrabHandler>();
             mario.AddComponent<MarioRescueHandler>();
 
+            var Col = Instantiate(GTPlayer.Instance.bodyCollider, mario.transform, worldPositionStays: false);
+            Col.transform.localPosition = Vector3.zero;
+            var marioWaterDetector = Col.AddComponent<MarioWaterDetector>();
+            Col.isTrigger = true;
+            
             var mario_handler = mario.AddComponent<SM64Mario>();
             if (mario_handler.spawned)
             {
                 RegisterMario(mario_handler);
                 mario.AddComponent<MarioSpawnHandler>();
+#if DEBUG
+                var dbg = mario.AddComponent<MarioDebugWindow>();
+                dbg.MyMario = mario_handler;
+                dbg.MyMarioWaterDetector = marioWaterDetector;
+                dbg.MyRealtime = terr;
+#endif
             }
-
+            
             Zone = zone;
         }
         
-        public void RemoveMario()
+        public static void RemoveMario()
         {
+            if (!XRSettings.isDeviceActive)
+            {
+                Destroy(MarioCamFollower.Instance);
+                CameraFollow.transform.SetParent(Camera.main.transform);
+                Camera.main.GetComponent<AudioListener>().enabled = true;
+                Destroy(GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>().GetComponent<AudioListener>());
+                CameraFollow.transform.localPosition = Vector3.zero;
+                CameraFollow.transform.localRotation = Quaternion.Euler(Vector3.zero);
+            }
             foreach (var mario in _marios)
             {
-                UnregisterMario(mario);
-                mario.enabled = false;
+                UnregisterMario(mario); 
                 Destroy(mario.gameObject);
             }
         }
@@ -174,7 +289,7 @@ namespace MarioMonkeMadness
                 _marios.Add(mario);
         }
 
-        private void UnregisterMario(SM64Mario mario)
+        private static void UnregisterMario(SM64Mario mario)
         {
             if (_marios.Contains(mario))
                 _marios.Remove(mario);

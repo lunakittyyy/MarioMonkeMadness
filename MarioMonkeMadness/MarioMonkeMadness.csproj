@@ -5,11 +5,9 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="Resources\mariobundle" />
-	  <None Remove="sm64.dll" />
 	</ItemGroup>
 	<ItemGroup>
 	  <EmbeddedResource Include="Resources\mariobundle" />
-	  <EmbeddedResource Include="sm64.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -22,11 +20,41 @@
 		<Reference Include="BepInEx">
 			<HintPath>$(BepInExAssemblyPath)\BepInEx.dll</HintPath>
 		</Reference>
+		<Reference Include="Meta.XR.BuildingBlocks">
+		  <HintPath>$(GameAssemblyPath)\Meta.XR.BuildingBlocks.dll</HintPath>
+		</Reference>
+		<Reference Include="Oculus.VR">
+		  <HintPath>$(GameAssemblyPath)\Oculus.VR.dll</HintPath>
+		</Reference>
+		<Reference Include="PhotonUnityNetworking">
+		  <HintPath>$(GameAssemblyPath)\PhotonUnityNetworking.dll</HintPath>
+		</Reference>
 		<Reference Include="SteamVR">
 			<HintPath>$(GameAssemblyPath)\SteamVR.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.IMGUIModule">
+			<HintPath>$(GameAssemblyPath)\UnityEngine.IMGUIModule.dll</HintPath>
+		</Reference>
 		<Reference Include="SteamVR_Actions">
 			<HintPath>$(GameAssemblyPath)\SteamVR_Actions.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.InputSystem">
+		  <HintPath>$(GameAssemblyPath)\Unity.InputSystem.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.XR.CoreUtils">
+		  <HintPath>$(GameAssemblyPath)\Unity.XR.CoreUtils.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.XR.Interaction.Toolkit">
+		  <HintPath>$(GameAssemblyPath)\Unity.XR.Interaction.Toolkit.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.XR.Management">
+		  <HintPath>$(GameAssemblyPath)\Unity.XR.Management.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.XR.Oculus">
+		  <HintPath>$(GameAssemblyPath)\Unity.XR.Oculus.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.XR.OpenVR">
+		  <HintPath>$(GameAssemblyPath)\Unity.XR.OpenVR.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.dll</HintPath>
@@ -43,11 +71,20 @@
 		<Reference Include="UnityEngine.CoreModule">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.CoreModule.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.InputModule">
+		  <HintPath>$(GameAssemblyPath)\UnityEngine.InputModule.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine.PhysicsModule">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.PhysicsModule.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.UI">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.UI.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.VRModule">
+		  <HintPath>$(GameAssemblyPath)\UnityEngine.VRModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.XR.LegacyInputHelpers">
+		  <HintPath>$(GameAssemblyPath)\UnityEngine.XR.LegacyInputHelpers.dll</HintPath>
 		</Reference>
 		<Reference Include="UnityEngine.XRModule">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.XRModule.dll</HintPath>

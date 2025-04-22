@@ -8,8 +8,8 @@ namespace MarioMonkeMadness.Tools
     {
         private readonly ConfigFile Config;
 
-        public ConfigEntry<bool> CustomColour;
-        public ConfigEntry<bool> Interpolation;
+        public ConfigEntry<bool> CustomColour, QuitSound;
+
 
         public ConfigEntry<ControllerType> JumpButton, KickButton, StompButton, AnalogButton;
 
@@ -19,7 +19,8 @@ namespace MarioMonkeMadness.Tools
 
             Config = plugin.Config;
             CustomColour = Config.Bind("Appearance", "Custom Colour", false, "This entry determines if Mario's colour scheme should match the colour of the player.");
-            Interpolation = Config.Bind("Appearance", "Interpolation", false, "This entry determines if Mario's animations are interpolated based on frame rate, which may give mixed results.");
+
+            QuitSound = Config.Bind("Sound", "Quit Sound", true, "Cool \"Thanks for playing\" at the end (makes quitting longer but you still leave the room) ");
 
             JumpButton = Config.Bind("Input", "Jump Controller", ControllerType.RightDevice, "This entry determines which controller is used to make Mario jump.");
             KickButton = Config.Bind("Input", "Kick Controller", ControllerType.RightDevice, "This entry determines which controller is used to make Mario kick.");

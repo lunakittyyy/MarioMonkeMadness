@@ -56,6 +56,9 @@
 		<Reference Include="Unity.XR.OpenVR">
 		  <HintPath>$(GameAssemblyPath)\Unity.XR.OpenVR.dll</HintPath>
 		</Reference>
+		<Reference Include="Unity.TextMeshPro">
+			<HintPath>$(GameAssemblyPath)\Unity.TextMeshPro.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine">
 			<HintPath>$(GameAssemblyPath)\UnityEngine.dll</HintPath>
 		</Reference>

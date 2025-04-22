@@ -27,7 +27,6 @@ namespace MarioMonkeMadness
         public AssetLoader asl;
         public static List<SM64Mario> _marios = new List<SM64Mario>();
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
-        private GameObject Mario;
         public static GameObject CameraFollow;
         private GTZone Zone;
         public static ManualLogSource Log;
@@ -55,7 +54,7 @@ namespace MarioMonkeMadness
 
         void DesktopToggleMario()
         {
-            if (!XRSettings.isDeviceActive)
+            if (!XRSettings.isDeviceActive && RefCache.RomData.Item1)
             {
                 if (_marios.Count > 0) 
                 {
@@ -126,14 +125,6 @@ namespace MarioMonkeMadness
 
         public void Update()
         {
-            // Check for if Mario is outside of the particular zone he is designated to be in
-            if (Mario && !ZoneManagement.IsInZone(Zone))
-            {
-                // Remove our current Mario and notify spawn pipes to deactivate their spawn buttons
-                RemoveMario();
-                RefCache.Events.Trigger_SetButtonState(null, Models.ButtonType.Spawn, false);
-            }
-            
             foreach (var o in _surfaceObjects)
                 o.contextUpdate();
 

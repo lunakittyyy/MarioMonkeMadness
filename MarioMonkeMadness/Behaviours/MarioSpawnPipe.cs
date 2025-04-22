@@ -3,6 +3,7 @@ using MarioMonkeMadness.Interaction;
 using MarioMonkeMadness.Models;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -45,9 +46,9 @@ namespace MarioMonkeMadness.Behaviours
                 SpawnButton = Pipe.transform.Find("Selection/Main/Spawn Button").gameObject.AddComponent<GorillaPressableButton>();
                 SpawnButton.buttonRenderer = SpawnButton.GetComponent<MeshRenderer>();
                 SpawnButton.debounceTime = 0.7f;
-                SpawnButton.myText = SpawnButton.transform.Find("Button Text").GetComponent<Text>();
-                SpawnButton.offText = "CREATE";
-                SpawnButton.onText = "REMOVE";
+                SpawnButton.myTmpText = SpawnButton.transform.Find("Button Text").GetComponent<TextMeshPro>();
+                SpawnButton.offText = "Create";
+                SpawnButton.onText = "Remove";
                 SpawnButton.onPressButton = spawnEvent;
 
                 UnityEvent wingEvent = new();
@@ -56,9 +57,9 @@ namespace MarioMonkeMadness.Behaviours
                 WingButton = Pipe.transform.Find("Selection/Main/Wingcap Button").gameObject.AddComponent<GorillaPressableButton>();
                 WingButton.buttonRenderer = WingButton.GetComponent<MeshRenderer>();
                 WingButton.debounceTime = 0.25f;
-                WingButton.myText = WingButton.transform.Find("Button Text").GetComponent<Text>();
-                WingButton.offText = "NORMAL";
-                WingButton.onText = "WING";
+                WingButton.myTmpText = WingButton.transform.Find("Button Text").GetComponent<TextMeshPro>();
+                WingButton.offText = "Normal";
+                WingButton.onText = "Wing";
                 WingButton.onPressButton = wingEvent;
             }
             else // If a Super Mario 64 ROM doesn't exist, display a sign which can futher assist the player with using the ROM
@@ -77,20 +78,20 @@ namespace MarioMonkeMadness.Behaviours
 
             if (relativeButton.isOn) // If the button being pressed is enabled
             {
-                relativeButton.myText.text = relativeButton.onText;
+                relativeButton.myTmpText.text = relativeButton.onText;
                 relativeButton.buttonRenderer.material.color = ButtonColourData[type].Item1;
 
                 (type == ButtonType.Spawn ? SpawnOn : WingOn)?.Invoke();
             }
             else // If the button being pressed is disabled
             {
-                relativeButton.myText.text = relativeButton.offText;
+                relativeButton.myTmpText.text = relativeButton.offText;
                 relativeButton.buttonRenderer.material.color = ButtonColourData[type].Item2;
 
                 (type == ButtonType.Spawn ? SpawnOff : WingOff)?.Invoke();
             }
 
-            Image buttonImage = relativeButton.myText.transform.Find("Image").GetComponent<Image>();
+            Image buttonImage = relativeButton.myTmpText.transform.Find("Image").GetComponent<Image>();
             buttonImage.sprite = type == ButtonType.Wing ? (relativeButton.isOn ? RefCache.AssetLoader.GetAsset<Sprite>("MarioHat2") : RefCache.AssetLoader.GetAsset<Sprite>("MarioHat")) : buttonImage.sprite;
 
             RefCache.Events.Trigger_SetButtonState(this, type, relativeButton.isOn);
@@ -105,19 +106,18 @@ namespace MarioMonkeMadness.Behaviours
 
             if (relativeButton.isOn) // If the button being remotely updated is now enabled
             {
-                relativeButton.myText.text = relativeButton.onText;
+                relativeButton.myTmpText.text = relativeButton.onText;
                 relativeButton.buttonRenderer.material.color = ButtonColourData[type].Item1;
             }
             else // If the button being remotely updated is now disabled
             {
-                relativeButton.myText.text = relativeButton.offText;
+                relativeButton.myTmpText.text = relativeButton.offText;
                 relativeButton.buttonRenderer.material.color = ButtonColourData[type].Item2;
             }
         }
 
         public float Hue(GTZone zone) => zone switch
         {
-            GTZone.forest => 0f,
             GTZone.mountain => 4.8f,
             GTZone.beach => 12f,
             GTZone.city => 9.8f,

@@ -18,7 +18,7 @@
 
 ## Credits
 - dev. - UI design and programming, AssetBundle assets, assistive Mario programming
-- Graze - Desktop mode and input handler, 
+- Graze - Desktop mode and input handler, assistive Gorilla Tag integration
 - libsm64 - original Super Mario 64 library
 - sashaantipov2012 - somewhat modified libsm64 and libsm64-unity for BepInEx
 

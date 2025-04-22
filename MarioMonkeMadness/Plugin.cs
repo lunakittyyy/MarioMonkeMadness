@@ -27,7 +27,8 @@ namespace MarioMonkeMadness
         public AssetLoader asl;
         public static List<SM64Mario> _marios = new List<SM64Mario>();
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
-        private GameObject Mario, CameraFollow;
+        private GameObject Mario;
+        public static GameObject CameraFollow;
         private GTZone Zone;
         public static ManualLogSource Log;
         bool PlayedQuitSFX;
@@ -86,7 +87,7 @@ namespace MarioMonkeMadness
             if (!PlayedQuitSFX)
             {
                 Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
-                if (_marios[0])
+                if (_marios.Count >= 1)
                 {
                     _marios[0].SetAction(SM64Constants.Action.ACT_CREDITS_CUTSCENE);
                     _marios[0].SetAnim(SM64Constants.MarioAnimID.MARIO_ANIM_CREDITS_WAVING);
@@ -264,7 +265,7 @@ namespace MarioMonkeMadness
             Zone = zone;
         }
         
-        public void RemoveMario()
+        public static void RemoveMario()
         {
             if (!XRSettings.isDeviceActive)
             {
@@ -288,7 +289,7 @@ namespace MarioMonkeMadness
                 _marios.Add(mario);
         }
 
-        private void UnregisterMario(SM64Mario mario)
+        private static void UnregisterMario(SM64Mario mario)
         {
             if (_marios.Contains(mario))
                 _marios.Remove(mario);

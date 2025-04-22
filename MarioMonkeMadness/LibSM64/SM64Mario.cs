@@ -43,6 +43,8 @@ namespace LibSM64
 
             if (marioId == -1)
             {
+                Destroy(gameObject);
+                Plugin.RemoveMario();
                 throw new System.Exception($"Failed to spawn Mario at {-initPos.x},{initPos.y},{initPos.z}");
             }
 
@@ -78,20 +80,6 @@ namespace LibSM64
             meshFilter.sharedMesh = marioMesh;
 
             tick = 0f;
-        }
-
-        public void OnDisable()
-        {
-            if ( marioRendererObject != null )
-            {
-                Destroy( marioRendererObject );
-                marioRendererObject = null;
-            }
-
-            if( Interop.isGlobalInit )
-            {
-                Interop.MarioDelete( marioId );
-            }
         }
         public void OnDestroy()
         {

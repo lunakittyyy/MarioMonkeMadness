@@ -76,14 +76,14 @@ namespace MarioMonkeMadness.Behaviours
                 transform.position = transformToFollow.position + Vector3.up * 1;
                 if (ReturnState)
                 {
-                    Plugin._marios[0].SetAction(SM64Constants.Action.ACT_SPAWN_SPIN_AIRBORNE);
+                    Plugin._mario.SetAction(SM64Constants.Action.ACT_SPAWN_SPIN_AIRBORNE);
                     ReturnState = false;
                 }
             }
             else
             {
-                Plugin._marios[0].SetPosition(transform.position - Vector3.up * 1);
-                Plugin._marios[0].SetAction(SM64Constants.Action.ACT_DEBUG_FREE_MOVE);
+                Plugin._mario.SetPosition(transform.position - Vector3.up * 1);
+                Plugin._mario.SetAction(SM64Constants.Action.ACT_DEBUG_FREE_MOVE);
                 ReturnState = true;
             }
 

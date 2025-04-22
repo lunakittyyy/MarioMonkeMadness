@@ -16,7 +16,7 @@ namespace MarioMonkeMadness.Behaviours
             {
                 waterVolumes.Add(waterVolume);
                 waterLevel = Mathf.RoundToInt(waterVolume.GetComponent<Collider>().bounds.max.y * Interop.SCALE_FACTOR);
-                Interop.SetWaterLevel(Plugin._marios[0].marioId, waterLevel);
+                Interop.SetWaterLevel(Plugin._mario.marioId, waterLevel);
             }
         }
 
@@ -28,7 +28,7 @@ namespace MarioMonkeMadness.Behaviours
                 if (waterVolumes.Count > 1)
                 {
                     waterLevel = -50000;
-                    Interop.SetWaterLevel(Plugin._marios[0].marioId, waterLevel);
+                    Interop.SetWaterLevel(Plugin._mario.marioId, waterLevel);
                 }
             }
         }

@@ -43,8 +43,7 @@ namespace LibSM64
 
             if (marioId == -1)
             {
-                Destroy(gameObject);
-                Plugin.RemoveMario();
+                Plugin.RemoveMario(this);
                 throw new System.Exception($"Failed to spawn Mario at {-initPos.x},{initPos.y},{initPos.z}");
             }
 
@@ -207,6 +206,10 @@ namespace LibSM64
 
         public void contextFixedUpdate()
         {
+            if (Plugin._mario != this)
+            {
+                Plugin.RemoveMario(this);
+            }
             uint oldAction = marioState.action;
             uint oldActionArg = marioState.actionArg;
             short oldFrame = marioState.animFrame;

@@ -17,6 +17,7 @@ using System.Collections;
 using UnityEngine.XR;
 using UnityEngine.InputSystem;
 using GorillaLocomotion;
+using GorillaLocomotion.Swimming;
 
 namespace MarioMonkeMadness
 {
@@ -25,7 +26,7 @@ namespace MarioMonkeMadness
     {
         public static Plugin Instance;
         public AssetLoader asl;
-        public static List<SM64Mario> _marios = new List<SM64Mario>();
+        public static SM64Mario _mario;
         static List<SM64DynamicTerrain> _surfaceObjects = new List<SM64DynamicTerrain>();
         public static GameObject CameraFollow;
         private GTZone Zone;
@@ -56,15 +57,15 @@ namespace MarioMonkeMadness
         {
             if (!XRSettings.isDeviceActive && RefCache.RomData.Item1)
             {
-                if (_marios.Count > 0) 
+                if (_mario != null) 
                 {
                     GTPlayer.Instance.enabled = true;
                     GTPlayer.Instance.disableMovement = false;
                     GTPlayer.Instance.inOverlay = false;
                     GTPlayer.Instance.InReportMenu = false;
                     GorillaTagger.Instance.rigidbody.isKinematic = false;
-                    GTPlayer.Instance.TeleportTo(_marios[0].transform.position + Vector3.up * 1, _marios[0].transform.rotation);
-                    RemoveMario();
+                    GTPlayer.Instance.TeleportTo(_mario.transform.position + Vector3.up * 1, _mario.transform.rotation);
+                    RemoveMario(_mario);
                 }
                 else
                 {
@@ -86,10 +87,10 @@ namespace MarioMonkeMadness
             if (!PlayedQuitSFX)
             {
                 Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
-                if (_marios.Count >= 1)
+                if (_mario != null)
                 {
-                    _marios[0].SetAction(SM64Constants.Action.ACT_CREDITS_CUTSCENE);
-                    _marios[0].SetAnim(SM64Constants.MarioAnimID.MARIO_ANIM_CREDITS_WAVING);
+                    _mario.SetAction(SM64Constants.Action.ACT_CREDITS_CUTSCENE);
+                    _mario.SetAnim(SM64Constants.MarioAnimID.MARIO_ANIM_CREDITS_WAVING);
                 }
                 NetworkSystem.Instance.ReturnToSinglePlayer();
                 yield return new WaitForSecondsRealtime(3);
@@ -128,17 +129,14 @@ namespace MarioMonkeMadness
             foreach (var o in _surfaceObjects)
                 o.contextUpdate();
 
-            foreach (var o in _marios)
-                o.contextUpdate();
+            if (_mario != null)
+                _mario.contextUpdate();
 
             if (Keyboard.current.mKey.wasPressedThisFrame)
-            {
                 DesktopToggleMario();
-            }
+
             if (Gamepad.current != null && Gamepad.current.yButton.wasPressedThisFrame)
-            {
                 DesktopToggleMario();
-            }
         }
 
         public void FixedUpdate()
@@ -146,8 +144,8 @@ namespace MarioMonkeMadness
             foreach (var o in _surfaceObjects)
                 o.contextFixedUpdate();
 
-            foreach (var o in _marios)
-                o.contextFixedUpdate();
+            if (_mario != null)
+                _mario.contextFixedUpdate();
         }
         public void OnDestroy()
         {
@@ -182,7 +180,7 @@ namespace MarioMonkeMadness
                 Interop.PlaySound(SM64Constants.SOUND_MARIO_WAAAOOOW);
 
                 // Remove our current Mario 
-                RemoveMario();
+                RemoveMario(_mario);
             };
             pipe.WingOn += () =>
             {
@@ -203,6 +201,15 @@ namespace MarioMonkeMadness
             mario.transform.eulerAngles = direction;
 
             var terr = mario.AddComponent<RealtimeTerrainManager>();
+
+            var Col = Instantiate(GTPlayer.Instance.bodyCollider, mario.transform, worldPositionStays: false);
+            var Col2 = Instantiate(Col,mario.transform, worldPositionStays: false);
+            Col.transform.localPosition = Vector3.zero;
+            Col2.transform.localPosition = Vector3.zero;
+            Col.isTrigger = true;
+            Col2.isTrigger = false;
+            Destroy(Col.GetComponent<WaterSplashOverride>());
+
             if (XRSettings.isDeviceActive)
             {
                 mario.AddComponent<VRInputProvider>();
@@ -231,14 +238,12 @@ namespace MarioMonkeMadness
                 GTPlayer.Instance.inOverlay = true;
                 GTPlayer.Instance.InReportMenu = true;
                 GorillaTagger.Instance.rigidbody.isKinematic = true;
+
+                Col.AddComponent<MarioGeoDetector>();
             }
             mario.AddComponent<MarioGrabHandler>();
             mario.AddComponent<MarioRescueHandler>();
-
-            var Col = Instantiate(GTPlayer.Instance.bodyCollider, mario.transform, worldPositionStays: false);
-            Col.transform.localPosition = Vector3.zero;
             var marioWaterDetector = Col.AddComponent<MarioWaterDetector>();
-            Col.isTrigger = true;
             
             var mario_handler = mario.AddComponent<SM64Mario>();
             if (mario_handler.spawned)
@@ -256,8 +261,9 @@ namespace MarioMonkeMadness
             Zone = zone;
         }
         
-        public static void RemoveMario()
-        {
+        public static void RemoveMario(SM64Mario mario)
+        {   
+            UnregisterMario(mario);
             if (!XRSettings.isDeviceActive)
             {
                 Destroy(MarioCamFollower.Instance);
@@ -267,23 +273,18 @@ namespace MarioMonkeMadness
                 CameraFollow.transform.localPosition = Vector3.zero;
                 CameraFollow.transform.localRotation = Quaternion.Euler(Vector3.zero);
             }
-            foreach (var mario in _marios)
-            {
-                UnregisterMario(mario); 
-                Destroy(mario.gameObject);
-            }
+            
         }
 
         private void RegisterMario(SM64Mario mario)
         {
-            if (!_marios.Contains(mario))
-                _marios.Add(mario);
+            _mario = mario;
         }
 
         private static void UnregisterMario(SM64Mario mario)
         {
-            if (_marios.Contains(mario))
-                _marios.Remove(mario);
+            Destroy(mario.gameObject);
+            _mario = null;
         }
         
         public void RegisterSurfaceObject(SM64DynamicTerrain surfaceObject)
@@ -299,7 +300,7 @@ namespace MarioMonkeMadness
         }
         
          Vector3[] GetColliderVertexPositions(BoxCollider col)
-        {
+         {
             var trans = col.transform;
             var min = (col.center - col.size * 0.5f);
             var max = (col.center + col.size * 0.5f);
@@ -335,7 +336,7 @@ namespace MarioMonkeMadness
             col.transform.rotation = storedRotation;
             return vertices;
             */
-        }
+         }
         #endregion
     }
 }

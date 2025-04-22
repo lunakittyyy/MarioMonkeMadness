@@ -50,7 +50,7 @@ namespace MarioMonkeMadness.Behaviours
 
             if (RefCache.IsWingSession)
             {
-                Interop.MarioInteractCap(marioId, SM64Constants.MARIO_WING_CAP, ushort.MaxValue, false);
+                Interop.MarioInteractCap(marioId, SM64Constants.MARIO_WING_CAP, ushort.MaxValue, true);
             }
         }
     }

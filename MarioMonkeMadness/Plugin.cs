@@ -97,17 +97,17 @@ namespace MarioMonkeMadness
         {
             if (!PlayedQuitSFX)
             {
-                Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
+                NetworkSystem.Instance.ReturnToSinglePlayer();
                 if (_mario != null)
                 {
+                    Interop.PlaySound(SM64Constants.SOUND_MENU_THANK_YOU_PLAYING_MY_GAME);
                     _mario.SetAction(SM64Constants.Action.ACT_CREDITS_CUTSCENE);
                     _mario.SetAnim(SM64Constants.MarioAnimID.MARIO_ANIM_CREDITS_WAVING);
+                    yield return new WaitForSecondsRealtime(3);
                 }
-                NetworkSystem.Instance.ReturnToSinglePlayer();
-                yield return new WaitForSecondsRealtime(3);
                 PlayedQuitSFX = true;
-                Application.Quit();
             }
+            Application.Quit();
         }
 
         public async void OnGameInitialized()

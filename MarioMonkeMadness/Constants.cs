@@ -25,12 +25,5 @@
         /// The manifest path of the main asset bundle
         /// </summary>
         public const string BundlePath = "MarioMonkeMadness.Resources.mariobundle";
-
-        // Logic
-
-        /// <summary>
-        /// The length of the trigger which generates static terrain on realtime 
-        /// </summary>
-        public const int TriggerLength = 150;
     }
 }

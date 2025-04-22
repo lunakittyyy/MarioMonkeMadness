@@ -46,7 +46,7 @@ namespace MarioMonkeMadness.Components
             gameObject.layer = (int)UnityLayer.GorillaBodyCollider;
 
             Rigidbody rigidbody = gameObject.AddComponent<Rigidbody>();
-            rigidbody.MovePosition(transform.position.WithY(transform.position.y - Constants.TriggerLength + 1));
+            rigidbody.MovePosition(transform.position.WithY(transform.position.y - 150 + 1));
             rigidbody.isKinematic = true;
 
             coll = gameObject.AddComponent<BoxCollider>();

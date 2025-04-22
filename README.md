@@ -16,5 +16,11 @@
 ## Attribution
 "[Mario Warp Pipe and Canon](https://skfb.ly/oPNJ6)" by IljaG is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
+## Credits
+- dev. - UI design and programming, AssetBundle assets, assistive Mario programming
+- Graze - Desktop mode and input handler, 
+- libsm64 - original Super Mario 64 library
+- sashaantipov2012 - somewhat modified libsm64 and libsm64-unity for BepInEx
+
 ## Disclaimer
 This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC. Portions of the materials contained herein are property of Another Axiom LLC. © 2021 Another Axiom LLC.

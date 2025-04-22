@@ -32,14 +32,6 @@ namespace MarioMonkeMadness
         private GTZone Zone;
         public static ManualLogSource Log;
         bool PlayedQuitSFX;
-
-        public enum ControlType
-        {
-            WASD,
-            Controller,
-            VR
-        }
-
         public Plugin()
         {
             Instance = this;
@@ -61,21 +53,18 @@ namespace MarioMonkeMadness
             return PlayedQuitSFX;
         }
 
-        void DesktopToggleMario(ControlType control)
+        void DesktopToggleMario()
         {
-            if (RefCache.RomData.Item1)
+            if (!XRSettings.isDeviceActive && RefCache.RomData.Item1)
             {
                 if (_mario != null) 
                 {
-                    if (!XRSettings.isDeviceActive)
-                    {
-                        GTPlayer.Instance.enabled = true;
-                        GTPlayer.Instance.disableMovement = false;
-                        GTPlayer.Instance.inOverlay = false;
-                        GTPlayer.Instance.InReportMenu = false;
-                        GorillaTagger.Instance.rigidbody.isKinematic = false;
-                        GTPlayer.Instance.TeleportTo(_mario.transform.position + Vector3.up * 1, _mario.transform.rotation);
-                    }
+                    GTPlayer.Instance.enabled = true;
+                    GTPlayer.Instance.disableMovement = false;
+                    GTPlayer.Instance.inOverlay = false;
+                    GTPlayer.Instance.InReportMenu = false;
+                    GorillaTagger.Instance.rigidbody.isKinematic = false;
+                    GTPlayer.Instance.TeleportTo(_mario.transform.position + Vector3.up * 1, _mario.transform.rotation);
                     RemoveMario(_mario);
                 }
                 else
@@ -88,7 +77,7 @@ namespace MarioMonkeMadness
                         Destroy(collider.gameObject.AddComponent<SM64StaticTerrain>(), 0.5f);
                     }
                     Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
-                    SpawnMario(vec, Camera.main.transform.localRotation.eulerAngles, ZoneManagement.instance.activeZones[0],control);
+                    SpawnMario(vec, Camera.main.transform.localRotation.eulerAngles, GTZone.forest);
                 }
             }
         }
@@ -144,10 +133,10 @@ namespace MarioMonkeMadness
                 _mario.contextUpdate();
 
             if (Keyboard.current.mKey.wasPressedThisFrame)
-                DesktopToggleMario(ControlType.WASD);
+                DesktopToggleMario();
 
             if (Gamepad.current != null && Gamepad.current.yButton.wasPressedThisFrame)
-                DesktopToggleMario(ControlType.Controller);
+                DesktopToggleMario();
         }
 
         public void FixedUpdate()
@@ -184,7 +173,7 @@ namespace MarioMonkeMadness
                 }
                 Interop.StaticSurfacesLoad(LibSM64.Utils.GetAllStaticSurfaces());
                 // Create a new Mario at the location of the Pipe
-                SpawnMario(position + Vector3.up * 0.32f, Vector3.up * direction, floorObject.Item1, ControlType.VR);
+                SpawnMario(position + Vector3.up * 0.32f, Vector3.up * direction, floorObject.Item1);
             };
             pipe.SpawnOff += () =>
             {
@@ -205,7 +194,7 @@ namespace MarioMonkeMadness
             };
         }
 
-        public void SpawnMario(Vector3 position, Vector3 direction, GTZone zone, ControlType control)
+        public void SpawnMario(Vector3 position, Vector3 direction, GTZone zone)
         {
             var mario = new GameObject("Mario");
             mario.transform.position = position;
@@ -220,35 +209,29 @@ namespace MarioMonkeMadness
             Col.isTrigger = true;
             Col2.isTrigger = false;
             Destroy(Col.GetComponent<WaterSplashOverride>());
-            if (control != ControlType.VR || RefCache.Config.VrDesktopCam.Value)
-            {
-                CameraFollow.transform.SetParent(mario.transform);
-                CameraFollow.transform.localPosition = mario.transform.position + Vector3.up * 2;
-                CameraFollow.transform.localRotation = Quaternion.Euler(Vector3.zero);
 
+            if (XRSettings.isDeviceActive)
+            {
+                mario.AddComponent<VRInputProvider>();
+            }
+            else
+            {
                 var camsys = CameraFollow.AddComponent<MarioCamFollower>();
-                camsys.transformToFollow = mario.transform;
-            }
-
-            switch (control)
-            {
-                case ControlType.WASD:
-                    mario.AddComponent<WASDInputProvider>();
-                    break;
-                case ControlType.Controller:
+                if (Gamepad.current != null)
+                {
                     mario.AddComponent<ControllerInputProvider>();
-                    break;
-                case ControlType.VR:
-                    if (XRSettings.isDeviceActive)
-                    {
-                        mario.AddComponent<VRInputProvider>();
-                    }
-                    break;
-            }
-            if(!XRSettings.isDeviceActive)
-            {
+                }
+                else
+                {
+                    mario.AddComponent<WASDInputProvider>();
+                    camsys.WASD = true;
+                }
+                CameraFollow.transform.SetParent(null);
                 Camera.main.GetComponent<AudioListener>().enabled = false;
                 GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>().AddComponent<AudioListener>();
+                camsys.transformToFollow = mario.transform;
+                CameraFollow.transform.localPosition = mario.transform.position + Vector3.up * 2;
+                CameraFollow.transform.localRotation = Quaternion.Euler(Vector3.zero);
 
                 GTPlayer.Instance.enabled = false;
                 GTPlayer.Instance.disableMovement = true;
@@ -281,18 +264,16 @@ namespace MarioMonkeMadness
         public static void RemoveMario(SM64Mario mario)
         {   
             UnregisterMario(mario);
-            Destroy(MarioCamFollower.Instance);
-            if (RefCache.Config.VrDesktopCam.Value || !XRSettings.isDeviceActive)
+            if (!XRSettings.isDeviceActive)
             {
+                Destroy(MarioCamFollower.Instance);
                 CameraFollow.transform.SetParent(Camera.main.transform);
+                Camera.main.GetComponent<AudioListener>().enabled = true;
+                Destroy(GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>().GetComponent<AudioListener>());
                 CameraFollow.transform.localPosition = Vector3.zero;
                 CameraFollow.transform.localRotation = Quaternion.Euler(Vector3.zero);
-                if (!XRSettings.isDeviceActive)
-                {
-                    Camera.main.GetComponent<AudioListener>().enabled = true;
-                    Destroy(GorillaTagger.Instance.thirdPersonCamera.GetComponentInChildren<Camera>().GetComponent<AudioListener>());
-                }
             }
+            
         }
 
         private void RegisterMario(SM64Mario mario)

@@ -32,9 +32,8 @@ namespace MarioMonkeMadness.Components
         private static float spacing = 0.25f;
         private static float totalWidth = (gridWidth - 1) * spacing;
         private static float totalHeight = (gridHeight - 1) * spacing;
-        private LayerMask includedLayers = LayerMask.GetMask("GorillaObject", "Gorilla Object", "MirrorOnly", "NoMirror", "Default", "Water");
+        private LayerMask includedLayers = LayerMask.GetMask("GorillaObject", "Gorilla Object", "MirrorOnly", "NoMirror", "Default");
         private LayerMask excludedLayers = LayerMask.GetMask("GorillaTrigger", "Gorilla Trigger", "IgnoreRaycast", "GorillaBoundary");
-        private LayerMask WaterLayer = LayerMask.GetMask("Water");
         public IEnumerator Start()
         {
             Transform transform = gameObject.transform; // prevent internal call implementation
@@ -74,7 +73,7 @@ namespace MarioMonkeMadness.Components
                 for (int z = 0; z < gridHeight; z++)
                 {
                     Vector3 rayOrigin = startPosition + new Vector3(x * spacing - totalWidth / 2f, 0, z * spacing - totalHeight / 2f);
-                    raycastCommands[index++] = new RaycastCommand(rayOrigin, Vector3.down, 5000f, includedLayers - WaterLayer);
+                    raycastCommands[index++] = new RaycastCommand(rayOrigin, Vector3.down, 5000f, includedLayers);
                 }
             }
             

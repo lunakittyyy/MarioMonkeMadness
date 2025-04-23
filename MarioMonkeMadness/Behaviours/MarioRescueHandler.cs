@@ -24,7 +24,7 @@ namespace MarioMonkeMadness.Behaviours
         void Update()
         {
             if (RefCache.IsSteam) leftStickClick = SteamVR_Actions.gorillaTag_LeftJoystickClick.GetState(SteamVR_Input_Sources.LeftHand);
-            else ControllerInputPoller.instance.rightControllerDevice.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out leftStickClick);
+            else ControllerInputPoller.instance.leftControllerDevice.TryGetFeatureValue(CommonUsages.primary2DAxisClick, out leftStickClick);
 
             if (leftStickClick && !clickedLastFrame)
             {

@@ -18,6 +18,7 @@ using UnityEngine.XR;
 using UnityEngine.InputSystem;
 using GorillaLocomotion;
 using GorillaLocomotion.Swimming;
+using Photon.Pun;
 
 namespace MarioMonkeMadness
 {
@@ -57,6 +58,8 @@ namespace MarioMonkeMadness
         {
             if (!XRSettings.isDeviceActive && RefCache.RomData.Item1)
             {
+                if (NetworkSystem.Instance.InRoom && !NetworkSystem.Instance.GameModeString.ToLower().Contains("modded"))
+                    NetworkSystem.Instance.ReturnToSinglePlayer();
                 if (_mario != null) 
                 {
                     GTPlayer.Instance.enabled = true;

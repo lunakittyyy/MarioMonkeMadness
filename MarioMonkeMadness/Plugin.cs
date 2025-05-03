@@ -12,13 +12,12 @@ using System.IO;
 using System.Linq;
 using BepInEx.Logging;
 using UnityEngine;
-using Logger = BepInEx.Logging.Logger;
 using System.Collections;
 using UnityEngine.XR;
 using UnityEngine.InputSystem;
 using GorillaLocomotion;
 using GorillaLocomotion.Swimming;
-using Photon.Pun;
+using Random = UnityEngine.Random;
 
 namespace MarioMonkeMadness
 {
@@ -262,6 +261,18 @@ namespace MarioMonkeMadness
             }
             
             Zone = zone;
+            if (Random.Range(0, 100) == 7)
+            {
+                Color32[] GrandDadColors = {
+                    new Color32(255  , 129  , 128, 255), // Overalls
+                    new Color32(108, 7  , 0  , 255), // Shirt/Hat
+                    new Color32(255, 255, 255, 255), // Skin
+                    new Color32(21, 95  , 217  , 255), // Hair
+                    new Color32(255, 255, 255, 255), // Gloves
+                    new Color32(255, 255 , 255 , 255), // Shoes
+                };
+                mario_handler.SetColors(GrandDadColors);
+            }
         }
         
         public static void RemoveMario(SM64Mario mario)
